@@ -33,8 +33,7 @@ cloudinary.config({
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// --- 3. MULTI-UPLOAD API (Unsigned Method) ---
-// DHAYAN DEIN: Yahan 'mediaFiles' likha hai, HTML mein bhi yahi hona chahiye
+// --- 3. MULTI-UPLOAD API ---
 app.post('/upload', upload.array('mediaFiles', 10), async (req, res) => {
     console.log(`🚦 Nayi Request: ${req.files ? req.files.length : 0} files aayi hain.`);
     
@@ -46,21 +45,17 @@ app.post('/upload', upload.array('mediaFiles', 10), async (req, res) => {
 
         const uploadResults = [];
 
-        // Loop: Ek-ek karke sab upload honge
         for (const file of req.files) {
             console.log(`➡️ Uploading: ${file.originalname}`);
 
-            // Buffer to Base64
             const fileBase64 = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
 
-            // Unsigned Upload using your preset
             const result = await cloudinary.uploader.unsigned_upload(
                 fileBase64, 
                 "royal_preset", 
                 { resource_type: "auto" }
             );
 
-            // DB mein save
             const newMedia = new Media({
                 category: req.body.category,
                 url: result.secure_url,
@@ -84,7 +79,7 @@ app.post('/upload', upload.array('mediaFiles', 10), async (req, res) => {
     }
 });
 
-// --- 4. GALLERY & DELETE ---
+// --- 4. GALLERY API ---
 app.get('/media', async (req, res) => {
     try {
         const items = await Media.find().sort({ _id: -1 });
@@ -92,18 +87,34 @@ app.get('/media', async (req, res) => {
     } catch (err) { res.status(500).json({ success: false }); }
 });
 
+// --- 5. SMART DELETE API (Website se hamesha clean karega) ---
 app.delete('/delete/:id', async (req, res) => {
     try {
         const item = await Media.findById(req.params.id);
+        
         if (item) {
-            await cloudinary.uploader.destroy(item.filename, {
-                api_key: '528438734126249',
-                api_secret: 'DnmnEIWQD4eE1AmOlBHd3IAqA3Y'
-            });
+            // Step A: Cloudinary se delete karne ki koshish karo
+            try {
+                await cloudinary.uploader.destroy(item.filename, {
+                    api_key: '528438734126249',
+                    api_secret: 'DnmnEIWQD4eE1AmOlBHd3IAqA3Y'
+                });
+                console.log(`☁️ Cloudinary se delete hua: ${item.filename}`);
+            } catch (cloudErr) {
+                // Agar cloudinary pe photo nahi mili (already deleted manualy), toh yahan aayega
+                console.log(`⚠️ Cloudinary pe nahi mila, par aage badh rahe hain...`);
+            }
+
+            // Step B: ZIDDI DELETE - MongoDB se toh 100% udayega hi udayega
             await Media.findByIdAndDelete(req.params.id);
+            console.log(`🗑️ Database (Website) se completely delete ho gaya!`);
         }
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ success: false }); }
+        
+        res.json({ success: true, message: "Item removed completely!" });
+    } catch (err) { 
+        console.log("🚨 Delete Route Error:", err.message);
+        res.status(500).json({ success: false }); 
+    }
 });
 
 // Keep Alive
