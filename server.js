@@ -14,33 +14,33 @@ app.use(express.json());
 app.use(express.static(__dirname)); 
 
 // --- 1. DATABASE CONNECTION ---
-// Ab ye seedha Render ke environment variables se MONGO_URI uthayega
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB Connection Successful!"))
-  .catch(err => console.log("❌ MongoDB Error:", err.message));
+  .then(() => console.log("✅ MongoDB Ready!"))
+  .catch(err => console.log("❌ DB Error:", err.message));
 
 const Media = mongoose.model('Media', new mongoose.Schema({
     category: String, url: String, filename: String 
 }));
 
 // --- 2. CLOUDINARY CONFIG ---
-// Ye line automatic process.env.CLOUDINARY_URL ko detect kar legi
+// Note: Delete karne ke liye config zaroori hai, par upload ab preset se hoga
 cloudinary.config(); 
-
-console.log("🛠️ Cloudinary System: Initialized via Environment Variable");
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// --- 3. UPLOAD API ---
+// --- 3. UPLOAD API (The "No-Signature" Method) ---
 app.post('/upload', upload.single('mediaFile'), async (req, res) => {
+    console.log("🚦 Uploading using Unsigned Preset...");
     try {
         if (!req.file) return res.status(400).json({ success: false, message: "No file selected!" });
 
-        console.log("🚦 Uploading to Cloudinary...");
-
+        // Hum "upload_preset" use kar rahe hain, isliye Signature ki tension khatam!
         const stream = cloudinary.uploader.upload_stream(
-            { folder: "RoyalEvents_Gallery", resource_type: "auto" },
+            { 
+                upload_preset: "royal_preset", // <--- Yahan apna naya preset name likho
+                resource_type: "auto" 
+            },
             async (error, result) => {
                 if (error) {
                     console.log("🚨 Cloudinary Error:", error.message);
@@ -53,7 +53,7 @@ app.post('/upload', upload.single('mediaFile'), async (req, res) => {
                     filename: result.public_id
                 });
                 await newMedia.save();
-                console.log("✅ Upload Success! Photo is live.");
+                console.log("✅ Success! Photo Live ho gayi.");
                 res.status(200).json({ success: true, url: result.secure_url });
             }
         );
@@ -77,6 +77,7 @@ app.delete('/delete/:id', async (req, res) => {
     try {
         const item = await Media.findById(req.params.id);
         if (item) {
+            // Delete hamesha signed hota hai, isliye upar config() zaroori hai
             await cloudinary.uploader.destroy(item.filename);
             await Media.findByIdAndDelete(req.params.id);
         }
@@ -84,11 +85,11 @@ app.delete('/delete/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ success: false }); }
 });
 
-// --- 5. KEEP-ALIVE SYSTEM ---
+// --- 5. KEEP-ALIVE ---
 setInterval(() => {
     https.get("https://the-royal-events-admin.onrender.com");
     console.log("📡 Ping: Server awake");
-}, 840000); // 14 minutes
+}, 840000);
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`🚀 Master Server Live on Port ${PORT}`));
