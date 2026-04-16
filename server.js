@@ -8,7 +8,6 @@ require('dotenv').config();
 
 const app = express();
 
-// --- SETTINGS ---
 app.use(cors({ origin: '*', methods: ['GET', 'POST', 'DELETE'] }));
 app.use(express.json());
 app.use(express.static(__dirname)); 
@@ -33,11 +32,10 @@ cloudinary.config({
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// --- 3. MULTI-UPLOAD API (Purely Unsigned) ---
-// Note: 'mediaFiles' wahi naam hai jo humne HTML input mein 'name' rakha hai.
-// '10' ka matlab hai ek baar mein maximum 10 photos.
+// --- 3. MULTI-UPLOAD API (Purely Unsigned - Makkhan chalega!) ---
+// 'mediaFiles' wahi naam hai jo humne HTML input ke 'name' mein rakha hai
 app.post('/upload', upload.array('mediaFiles', 10), async (req, res) => {
-    console.log(`🚦 Multi-Upload Shuru: ${req.files ? req.files.length : 0} files aayi hain.`);
+    console.log(`🚦 Multi-Upload request: ${req.files ? req.files.length : 0} files aayi hain.`);
     
     try {
         if (!req.files || req.files.length === 0) {
@@ -46,19 +44,19 @@ app.post('/upload', upload.array('mediaFiles', 10), async (req, res) => {
 
         const uploadResults = [];
 
-        // Loop: Har file ke liye process chalega
+        // Loop: Har file ko ek-ek karke process karenge
         for (const file of req.files) {
-            // Buffer ko Base64 mein badalna (Unsigned upload ke liye)
+            // Buffer ko Base64 mein convert kar rahe hain (Unsigned method ki requirement)
             const fileBase64 = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
 
-            // Cloudinary par upload (Aapka preset use ho raha hai)
+            // Cloudinary par Unsigned Upload
             const result = await cloudinary.uploader.unsigned_upload(
                 fileBase64, 
-                "royal_preset", 
+                "royal_preset", // Aapka banaya hua preset
                 { resource_type: "auto" }
             );
 
-            // Database mein save karna
+            // Database mein photo ki entry save karna
             const newMedia = new Media({
                 category: req.body.category,
                 url: result.secure_url,
@@ -69,7 +67,7 @@ app.post('/upload', upload.array('mediaFiles', 10), async (req, res) => {
             uploadResults.push(result.secure_url);
         }
 
-        console.log(`✅ Success! ${uploadResults.length} photos upload ho gayi.`);
+        console.log(`✅ Success! ${uploadResults.length} photos live ho gayi.`);
         res.status(200).json({ 
             success: true, 
             message: `${uploadResults.length} Files uploaded successfully!`,
@@ -78,11 +76,11 @@ app.post('/upload', upload.array('mediaFiles', 10), async (req, res) => {
 
     } catch (err) {
         console.log("🚨 Multi-Upload Error:", err.message);
-        res.status(500).json({ success: false, message: "Server Error: " + err.message });
+        res.status(500).json({ success: false, message: "Cloudinary Error: " + err.message });
     }
 });
 
-// --- 4. GALLERY & DELETE ---
+// --- 4. GALLERY & DELETE API ---
 app.get('/media', async (req, res) => {
     try {
         const items = await Media.find().sort({ _id: -1 });
@@ -104,10 +102,11 @@ app.delete('/delete/:id', async (req, res) => {
     } catch (err) { res.status(500).json({ success: false }); }
 });
 
-// Keep Alive
+// Keep Alive Ping
 setInterval(() => {
     https.get("https://the-royal-events-admin.onrender.com");
+    console.log("📡 Ping: Server is awake");
 }, 800000);
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`🚀 Bulk Master Server Live on Port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Master Server Live on Port ${PORT}`));
