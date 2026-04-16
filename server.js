@@ -3,18 +3,23 @@ const cors = require('cors');
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary').v2;
+const path = require('path'); // Naya add kiya: Files read karne ke liye
 require('dotenv').config();
 
 const app = express();
 
-// CORS Setting: GitHub Pages ki website ko allow karne ke liye
+// CORS Setting
 app.use(cors({
-    origin: '*', // Abhi sab allow kiya hai, baad me yahan apne github page ka link daal dena
-    methods: ['GET', 'POST']
+    origin: '*', 
+    methods: ['GET', 'POST', 'DELETE'] // Aage delete bhi karenge isliye add kiya
 }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// --- NAYA CODE YAHAN HAI ---
+// Ye line server ko bolegi ki folder me jo index.html hai, use website pe dikhao
+app.use(express.static(__dirname)); 
 
 // Cloudinary Configuration
 cloudinary.config({
@@ -27,9 +32,9 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'RoyalEvents_Gallery', // Cloudinary me is folder me photo jayegi
+    folder: 'RoyalEvents_Gallery', 
     allowed_formats: ['jpg', 'jpeg', 'png', 'mp4', 'mov'],
-    resource_type: 'auto' // Ye image aur video dono ko support karega
+    resource_type: 'auto' 
   },
 });
 
@@ -45,12 +50,10 @@ app.post('/upload', upload.single('mediaFile'), (req, res) => {
         const category = req.body.category;
         const fileUrl = req.file.path; 
 
-        // TODO: Is 'fileUrl' aur 'category' ko MongoDB me save karna hoga next step me
         console.log("Upload Success!");
         console.log("Category:", category);
         console.log("Cloudinary URL:", fileUrl);
         
-        // Admin Page ko response wapas bhejna
         res.status(200).json({ 
             success: true, 
             message: "File uploaded to Cloudinary successfully!",
@@ -64,10 +67,7 @@ app.post('/upload', upload.single('mediaFile'), (req, res) => {
     }
 });
 
-// Test Route
-app.get('/', (req, res) => {
-    res.send("The Royal Events Backend is Running!");
-});
+// Puraana app.get('/') wala hissa hata diya kyunki ab 'express.static' automatically index.html dikhayega
 
 // Server Start
 const PORT = process.env.PORT || 5000;
