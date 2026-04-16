@@ -120,9 +120,10 @@
 
         .preview-container {
             margin-top: 20px; text-align: center; display: none;
+            display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
         }
         .preview-container img, .preview-container video {
-            max-width: 100%; max-height: 300px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100px; height: 100px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
         .btn-submit {
@@ -178,7 +179,7 @@
 
         <div id="upload" class="tab-content active">
             <div class="upload-card">
-                <h2>Add New Memory</h2>
+                <h2>Add New Memories</h2>
                 <form id="uploadForm">
                     <div class="form-group">
                         <label>Select Category</label>
@@ -190,18 +191,16 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Upload File</label>
+                        <label>Upload Files (Multiple)</label>
                         <div class="file-upload-wrapper">
                             <i class="fa-solid fa-file-arrow-up"></i>
-                            <p>Click or Drag & Drop Photo/Video here</p>
-                            <input type="file" name="mediaFile" id="mediaFile" accept="image/*, video/*" required>
+                            <p>Click or Drag & Drop Photos/Videos here</p>
+                            <input type="file" name="mediaFiles" id="mediaFile" accept="image/*, video/*" multiple required>
                         </div>
                     </div>
 
                     <div class="preview-container" id="previewContainer">
-                        <img id="imagePreview" style="display: none;" alt="Preview">
-                        <video id="videoPreview" controls style="display: none;"></video>
-                    </div>
+                        </div>
 
                     <button type="submit" class="btn-submit" id="submitBtn">Upload to Website</button>
                     <div class="loader" id="uploadLoader"><i class="fa-solid fa-spinner"></i> Uploading... Please wait</div>
@@ -213,15 +212,7 @@
             <h2 style="margin-bottom: 20px; color: var(--secondary-color);">Manage Website Gallery</h2>
             <p style="margin-bottom: 20px; color: #666;">Here you can view and delete images/videos currently live on your website.</p>
             
-            <div class="gallery-grid" id="adminGalleryGrid">
-                <div class="gallery-card">
-                    <img src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=400" alt="Sample">
-                    <div class="gallery-info">
-                        <span class="tag">Wedding</span>
-                        <button class="btn-delete" title="Delete this item" onclick="deleteMedia('dummy_id')"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </div>
-            </div>
+            <div class="gallery-grid" id="adminGalleryGrid"></div>
             <div class="loader" id="galleryLoader" style="display: block;"><i class="fa-solid fa-spinner"></i> Fetching Gallery...</div>
         </div>
 
@@ -239,42 +230,52 @@
             event.currentTarget.classList.add('active');
 
             if(tabId === 'manage') {
-                loadGallery(); // Manage tab kholte hi server se photos load hongi
+                loadGallery();
             }
         }
 
-        // --- 2. LIVE PREVIEW LOGIC ---
+        // --- 2. MULTI-PREVIEW LOGIC ---
         document.getElementById('mediaFile').addEventListener('change', function(event) {
-            const file = event.target.files[0];
+            const files = event.target.files;
             const previewContainer = document.getElementById('previewContainer');
-            const imgPreview = document.getElementById('imagePreview');
-            const videoPreview = document.getElementById('videoPreview');
+            
+            previewContainer.innerHTML = ''; // Purane previews saaf karo
+            previewContainer.style.display = 'flex';
 
-            imgPreview.style.display = 'none';
-            videoPreview.style.display = 'none';
-            previewContainer.style.display = 'block';
-
-            if (file) {
-                const url = URL.createObjectURL(file);
-                if (file.type.startsWith('image/')) {
-                    imgPreview.src = url;
-                    imgPreview.style.display = 'inline-block';
-                } else if (file.type.startsWith('video/')) {
-                    videoPreview.src = url;
-                    videoPreview.style.display = 'inline-block';
-                }
+            if (files.length > 0) {
+                Array.from(files).forEach(file => {
+                    const url = URL.createObjectURL(file);
+                    if (file.type.startsWith('image/')) {
+                        const img = document.createElement('img');
+                        img.src = url;
+                        previewContainer.appendChild(img);
+                    } else if (file.type.startsWith('video/')) {
+                        const video = document.createElement('video');
+                        video.src = url;
+                        previewContainer.appendChild(video);
+                    }
+                });
             }
         });
 
-        // --- 3. AJAX UPLOAD LOGIC ---
+        // --- 3. MULTI-UPLOAD AJAX LOGIC ---
         document.getElementById('uploadForm').addEventListener('submit', async function(e) {
-            e.preventDefault(); // Page refresh hone se rokna
+            e.preventDefault();
             
             const submitBtn = document.getElementById('submitBtn');
             const loader = document.getElementById('uploadLoader');
-            const formData = new FormData(this);
+            const fileInput = document.getElementById('mediaFile');
+            const category = document.getElementById('category').value;
 
-            // UI update during upload
+            // NAYA: FormData manually banana padega multiple files ke liye
+            const formData = new FormData();
+            formData.append('category', category);
+            
+            // Sabhi files ko loop karke add karo
+            Array.from(fileInput.files).forEach(file => {
+                formData.append('mediaFiles', file);
+            });
+
             submitBtn.style.display = 'none';
             loader.style.display = 'block';
 
@@ -287,41 +288,36 @@
                 const data = await response.json();
                 
                 if(data.success) {
-                    alert("✅ Media Uploaded Successfully!");
-                    this.reset(); // Form clear karna
+                    alert(`✅ Done! ${fileInput.files.length} items uploaded successfully.`);
+                    this.reset();
                     document.getElementById('previewContainer').style.display = 'none';
                 } else {
                     alert("❌ Error: " + data.message);
                 }
             } catch (error) {
-                alert("❌ Server connection failed. Make sure backend is running.");
+                alert("❌ Server connection failed!");
                 console.error(error);
             } finally {
-                // UI reset
                 submitBtn.style.display = 'block';
                 loader.style.display = 'none';
             }
         });
 
-        // --- 4. FETCH GALLERY LOGIC (For Manage Tab) ---
+        // --- 4. FETCH GALLERY LOGIC ---
         async function loadGallery() {
             const grid = document.getElementById('adminGalleryGrid');
             const loader = document.getElementById('galleryLoader');
             
-            grid.innerHTML = ''; // Clear old data
+            grid.innerHTML = '';
             loader.style.display = 'block';
 
             try {
-                // API Call to get images from database (Backend me banayenge)
                 const response = await fetch(`${SERVER_URL}/media`);
-                if(!response.ok) throw new Error("Endpoint missing");
-                
                 const data = await response.json();
                 loader.style.display = 'none';
 
                 if(data.items && data.items.length > 0) {
                     data.items.forEach(item => {
-                        // Generate HTML cards for each photo/video
                         const isVideo = item.url.match(/\.(mp4|mov|webm)$/i);
                         const mediaTag = isVideo 
                             ? `<video src="${item.url}" controls></video>` 
@@ -342,35 +338,28 @@
                 } else {
                     grid.innerHTML = '<p style="grid-column: 1/-1; text-align:center;">No media uploaded yet.</p>';
                 }
-
             } catch (error) {
                 loader.style.display = 'none';
-                grid.innerHTML = `
-                    <div style="grid-column: 1/-1; text-align:center; padding: 30px; background:#fff; border-radius:10px;">
-                        <i class="fa-solid fa-triangle-exclamation" style="font-size:30px; color:#dc3545; margin-bottom:10px;"></i>
-                        <p><b>Backend Connection Warning</b></p>
-                        <p>Upload is ready, but to view/delete images here, we need to add MongoDB code to your Render backend next!</p>
-                    </div>`;
+                grid.innerHTML = '<p style="text-align:center; color:red;">Failed to connect to server.</p>';
             }
         }
 
         // --- 5. DELETE MEDIA LOGIC ---
         async function deleteMedia(id) {
-            if(!confirm("Are you sure you want to delete this file from your website?")) return;
+            if(!confirm("Humesha ke liye delete kar dein?")) return;
 
             try {
-                // API Call to delete item (Backend me banayenge)
                 const response = await fetch(`${SERVER_URL}/delete/${id}`, { method: 'DELETE' });
                 const data = await response.json();
 
                 if(data.success) {
-                    document.getElementById(`card-${id}`).remove(); // Remove from UI
-                    alert("🗑️ Item Deleted successfully!");
+                    document.getElementById(`card-${id}`).remove();
+                    alert("🗑️ Item Deleted!");
                 } else {
-                    alert("❌ Error deleting item.");
+                    alert("❌ Delete fail ho gaya.");
                 }
             } catch (error) {
-                alert("❌ Delete feature requires database connection setup in backend.");
+                alert("❌ Server connection error!");
             }
         }
     </script>
