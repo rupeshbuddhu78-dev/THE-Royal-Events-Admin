@@ -3,7 +3,8 @@ const cors = require('cors');
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary').v2;
-const path = require('path'); // Naya add kiya: Files read karne ke liye
+const mongoose = require('mongoose'); // Naya: Database ke liye
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -11,24 +12,34 @@ const app = express();
 // CORS Setting
 app.use(cors({
     origin: '*', 
-    methods: ['GET', 'POST', 'DELETE'] // Aage delete bhi karenge isliye add kiya
+    methods: ['GET', 'POST', 'DELETE']
 }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// --- NAYA CODE YAHAN HAI ---
-// Ye line server ko bolegi ki folder me jo index.html hai, use website pe dikhao
 app.use(express.static(__dirname)); 
 
-// Cloudinary Configuration
+// --- 1. MONGODB CONNECTION ---
+// Ye code aapke Render se MONGO_URI uthayega aur database connect karega
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ MongoDB Connected Successfully!"))
+  .catch(err => console.log("❌ MongoDB Error:", err));
+
+// Database Model (Ye humara table hai jisme photo ki details save hogi)
+const MediaSchema = new mongoose.Schema({
+    category: String,
+    url: String,
+    filename: String // Cloudinary se delete karne ke liye iski zaroorat padegi
+});
+const Media = mongoose.model('Media', MediaSchema);
+
+// --- 2. CLOUDINARY CONFIGURATION ---
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.API_KEY,
   api_secret: process.env.API_SECRET
 });
 
-// Multer aur Cloudinary Storage Set karna
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
@@ -37,28 +48,30 @@ const storage = new CloudinaryStorage({
     resource_type: 'auto' 
   },
 });
-
 const upload = multer({ storage: storage });
 
-// API Route for Uploading
-app.post('/upload', upload.single('mediaFile'), (req, res) => {
+// --- 3. API ROUTE: UPLOAD (Photo aayegi aur DB me save hogi) ---
+app.post('/upload', upload.single('mediaFile'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ success: false, message: "No file uploaded!" });
         }
 
-        const category = req.body.category;
-        const fileUrl = req.file.path; 
+        // Nayi photo ki entry Database me save karna
+        const newMedia = new Media({
+            category: req.body.category,
+            url: req.file.path,
+            filename: req.file.filename // Cloudinary ID
+        });
+        await newMedia.save();
 
-        console.log("Upload Success!");
-        console.log("Category:", category);
-        console.log("Cloudinary URL:", fileUrl);
+        console.log("Upload & DB Save Success!");
         
         res.status(200).json({ 
             success: true, 
-            message: "File uploaded to Cloudinary successfully!",
-            category: category,
-            url: fileUrl 
+            message: "File uploaded and saved to database!",
+            category: req.body.category,
+            url: req.file.path 
         });
 
     } catch (error) {
@@ -67,7 +80,35 @@ app.post('/upload', upload.single('mediaFile'), (req, res) => {
     }
 });
 
-// Puraana app.get('/') wala hissa hata diya kyunki ab 'express.static' automatically index.html dikhayega
+// --- 4. API ROUTE: GET GALLERY (Admin panel me show karne ke liye) ---
+app.get('/media', async (req, res) => {
+    try {
+        // Database se saari photos utha kar frontend ko bhejna (Latest photo sabse upar)
+        const items = await Media.find().sort({ _id: -1 }); 
+        res.status(200).json({ items: items });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Failed to fetch media." });
+    }
+});
+
+// --- 5. API ROUTE: DELETE (Trash button click hone par) ---
+app.delete('/delete/:id', async (req, res) => {
+    try {
+        const item = await Media.findById(req.params.id);
+        if (!item) return res.status(404).json({ success: false, message: "Item not found in Database." });
+
+        // Step A: Cloudinary storage se photo udana
+        await cloudinary.uploader.destroy(item.filename);
+        
+        // Step B: MongoDB Database se link udana
+        await Media.findByIdAndDelete(req.params.id);
+
+        res.status(200).json({ success: true, message: "Deleted successfully!" });
+    } catch (error) {
+        console.error("Delete Error:", error);
+        res.status(500).json({ success: false, message: "Failed to delete item." });
+    }
+});
 
 // Server Start
 const PORT = process.env.PORT || 5000;
