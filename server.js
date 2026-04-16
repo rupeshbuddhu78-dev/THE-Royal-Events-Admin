@@ -8,21 +8,23 @@ require('dotenv').config();
 
 const app = express();
 
+// --- SETTINGS ---
 app.use(cors({ origin: '*', methods: ['GET', 'POST', 'DELETE'] }));
 app.use(express.json());
 app.use(express.static(__dirname)); 
 
-// --- 1. DATABASE ---
+// --- 1. DATABASE CONNECTION ---
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB Ready!"))
+  .then(() => console.log("✅ MongoDB Ready for Bulk Uploads!"))
   .catch(err => console.log("❌ DB Error:", err.message));
 
 const Media = mongoose.model('Media', new mongoose.Schema({
-    category: String, url: String, filename: String 
+    category: String, 
+    url: String, 
+    filename: String 
 }));
 
 // --- 2. CLOUDINARY CONFIG ---
-// Hum sirf Cloud Name use karenge unsigned ke liye taaki signature na bane
 cloudinary.config({ 
   cloud_name: 'dksk72xzh',
   secure: true
@@ -31,35 +33,52 @@ cloudinary.config({
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// --- 3. UPLOAD API (Purely Unsigned - No Signature Error!) ---
-app.post('/upload', upload.single('mediaFile'), async (req, res) => {
-    console.log("🚦 Uploading using Pure Unsigned Method...");
+// --- 3. MULTI-UPLOAD API (Purely Unsigned) ---
+// Note: 'mediaFiles' wahi naam hai jo humne HTML input mein 'name' rakha hai.
+// '10' ka matlab hai ek baar mein maximum 10 photos.
+app.post('/upload', upload.array('mediaFiles', 10), async (req, res) => {
+    console.log(`🚦 Multi-Upload Shuru: ${req.files ? req.files.length : 0} files aayi hain.`);
+    
     try {
-        if (!req.file) return res.status(400).json({ success: false, message: "No file selected!" });
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ success: false, message: "No files selected!" });
+        }
 
-        // Buffer ko Base64 mein badal rahe hain kyunki unsigned_upload ke liye ye zaroori hai
-        const fileBase64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+        const uploadResults = [];
 
-        // Ye hai asli Unsigned function
-        const result = await cloudinary.uploader.unsigned_upload(
-            fileBase64, 
-            "royal_preset", // Aapka banaya hua Unsigned Preset
-            { resource_type: "auto" }
-        );
+        // Loop: Har file ke liye process chalega
+        for (const file of req.files) {
+            // Buffer ko Base64 mein badalna (Unsigned upload ke liye)
+            const fileBase64 = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
 
-        const newMedia = new Media({
-            category: req.body.category,
-            url: result.secure_url,
-            filename: result.public_id
+            // Cloudinary par upload (Aapka preset use ho raha hai)
+            const result = await cloudinary.uploader.unsigned_upload(
+                fileBase64, 
+                "royal_preset", 
+                { resource_type: "auto" }
+            );
+
+            // Database mein save karna
+            const newMedia = new Media({
+                category: req.body.category,
+                url: result.secure_url,
+                filename: result.public_id
+            });
+            await newMedia.save();
+            
+            uploadResults.push(result.secure_url);
+        }
+
+        console.log(`✅ Success! ${uploadResults.length} photos upload ho gayi.`);
+        res.status(200).json({ 
+            success: true, 
+            message: `${uploadResults.length} Files uploaded successfully!`,
+            urls: uploadResults 
         });
-        await newMedia.save();
-
-        console.log("✅ Success! Photo is live.");
-        res.status(200).json({ success: true, url: result.secure_url });
 
     } catch (err) {
-        console.log("🚨 Cloudinary Error:", err.message);
-        res.status(500).json({ success: false, message: "Cloudinary Error: " + err.message });
+        console.log("🚨 Multi-Upload Error:", err.message);
+        res.status(500).json({ success: false, message: "Server Error: " + err.message });
     }
 });
 
@@ -71,12 +90,10 @@ app.get('/media', async (req, res) => {
     } catch (err) { res.status(500).json({ success: false }); }
 });
 
-// Note: Delete ke liye API_SECRET chahiye hota hai, isliye hum yahan manually config bhejenge
 app.delete('/delete/:id', async (req, res) => {
     try {
         const item = await Media.findById(req.params.id);
         if (item) {
-            // Delete ke liye temp config
             await cloudinary.uploader.destroy(item.filename, {
                 api_key: '528438734126249',
                 api_secret: 'DnmnEIWQD4eE1AmOlBHd3IAqA3Y'
@@ -93,4 +110,4 @@ setInterval(() => {
 }, 800000);
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`🚀 Master Server Live on Port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Bulk Master Server Live on Port ${PORT}`));
