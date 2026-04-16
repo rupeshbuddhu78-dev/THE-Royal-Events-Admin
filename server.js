@@ -1,8 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const cloudinary = require('cloudinary').v2;
+const cloudinary = require('cloudinary').v2; // Official SDK
 const mongoose = require('mongoose'); 
 const path = require('path');
 
@@ -29,71 +28,67 @@ const MediaSchema = new mongoose.Schema({
 const Media = mongoose.model('Media', MediaSchema);
 
 // --- 2. CLOUDINARY CONFIGURATION ---
+// Maine aapke screenshot se 100% sahi values daal di hain
 cloudinary.config({
   cloud_name: 'dksk72xzh',
   api_key: '528438734126249',
-  api_secret: 'DnmnEIWQD4eE1AmOlBHd3IAqA3Y'
+  api_secret: 'DnmnEIWQD4eE1AmOlBHd3IAqA3Y' 
 });
 
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'RoyalEvents_Gallery', 
-    allowed_formats: ['jpg', 'jpeg', 'png', 'mp4', 'mov'],
-    resource_type: 'auto' 
-  },
-});
+// Multer: Ab hum photo ko pehle memory me rakhenge fir bhejenge
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
-// Multer setup
-const upload = multer({ storage: storage }).single('mediaFile');
-
-// --- 3. API ROUTE: UPLOAD (SUPER DEBUG VERSION) ---
-app.post('/upload', (req, res) => {
+// --- 3. API ROUTE: UPLOAD (Official Stream Method) ---
+app.post('/upload', upload.single('mediaFile'), async (req, res) => {
     console.log("🚦 Nayi Upload Request Aayi Hai...");
 
-    // Manual handling of upload to catch [object Object] errors
-    upload(req, res, async function (err) {
-        if (err) {
-            console.log("🚨 CLOUDINARY UPLOAD ERROR DETAILS:");
-            // Ye line asli error message nikaalegi
-            const errorMsg = err.message || JSON.stringify(err);
-            console.log("ASLI WAJAH:", errorMsg);
-            
-            return res.status(500).json({ 
-                success: false, 
-                message: "Cloudinary Error: " + errorMsg 
-            });
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: "No file selected!" });
         }
 
-        // Agar raste mein koi error nahi aaya, toh ab DB mein save karenge
-        try {
-            if (!req.file) {
-                console.log("❌ Error: Backend ko file nahi mili!");
-                return res.status(400).json({ success: false, message: "No file selected!" });
+        // --- ASLI MAGIC YAHAN HAI (Official Cloudinary Upload) ---
+        const uploadStream = cloudinary.uploader.upload_stream(
+            {
+                folder: "RoyalEvents_Gallery",
+                resource_type: "auto", // Image aur Video dono ke liye
+            },
+            async (error, result) => {
+                if (error) {
+                    console.log("🚨 CLOUDINARY ERROR:", error.message);
+                    return res.status(500).json({ success: false, message: error.message });
+                }
+
+                // Agar Cloudinary pe chali gayi, toh MongoDB me save karo
+                try {
+                    const newMedia = new Media({
+                        category: req.body.category,
+                        url: result.secure_url, // Cloudinary ka link
+                        filename: result.public_id // Delete karne ke liye ID
+                    });
+
+                    await newMedia.save();
+                    console.log("✅ Success! Photo live ho gayi.");
+
+                    res.status(200).json({ 
+                        success: true, 
+                        message: "Success!",
+                        url: result.secure_url 
+                    });
+                } catch (dbErr) {
+                    res.status(500).json({ success: false, message: "DB Error" });
+                }
             }
+        );
 
-            console.log("✅ Photo Cloudinary pe chali gayi! URL:", req.file.path);
+        // Photo ka data pipe (bhej) rahe hain Cloudinary ko
+        uploadStream.end(req.file.buffer);
 
-            const newMedia = new Media({
-                category: req.body.category,
-                url: req.file.path,
-                filename: req.file.filename
-            });
-
-            await newMedia.save();
-            console.log("✅ Database mein bhi entry ho gayi!");
-
-            res.status(200).json({ 
-                success: true, 
-                message: "Success! Photo is now live.",
-                url: req.file.path 
-            });
-
-        } catch (dbError) {
-            console.log("🚨 DATABASE SAVE ERROR:", dbError.message);
-            res.status(500).json({ success: false, message: "DB Error: " + dbError.message });
-        }
-    });
+    } catch (err) {
+        console.log("🚨 SERVER ERROR:", err.message);
+        res.status(500).json({ success: false, message: err.message });
+    }
 });
 
 // --- 4. GET & DELETE ROUTES ---
@@ -110,6 +105,7 @@ app.delete('/delete/:id', async (req, res) => {
     try {
         const item = await Media.findById(req.params.id);
         if (item) {
+            // Official Delete Method
             await cloudinary.uploader.destroy(item.filename);
             await Media.findByIdAndDelete(req.params.id);
         }
