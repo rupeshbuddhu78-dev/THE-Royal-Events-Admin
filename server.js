@@ -45,8 +45,8 @@ const Booking = mongoose.model('Booking', new mongoose.Schema({
     photography: String,
     band: String,
     message: String,
-    referenceImage: String, // NAYA: Cloudinary ka URL yahan save hoga
-    status: { type: String, default: 'Pending' }, // Pending, Confirmed, Completed
+    referenceImage: String, // Cloudinary URL
+    status: { type: String, default: 'Pending' }, 
     dateSubmit: { type: Date, default: Date.now }
 }));
 
@@ -61,7 +61,6 @@ const Review = mongoose.model('Review', new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }));
 
-
 // --- 2. CLOUDINARY CONFIG ---
 cloudinary.config({ 
   cloud_name: 'dksk72xzh',
@@ -75,7 +74,6 @@ const upload = multer({ storage: storage });
 //          📸 GALLERY APIs
 // ==========================================
 
-// Bulk Upload Gallery
 app.post('/upload', upload.array('mediaFiles', 10), async (req, res) => {
     console.log(`🚦 Gallery Upload Request: ${req.files ? req.files.length : 0} files.`);
     try {
@@ -83,7 +81,13 @@ app.post('/upload', upload.array('mediaFiles', 10), async (req, res) => {
         const uploadResults = [];
         for (const file of req.files) {
             const fileBase64 = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
-            const result = await cloudinary.uploader.unsigned_upload(fileBase64, "royal_preset", { resource_type: "auto" });
+            
+            // 🔥 NAYA: Folder name "Royal_Gallery" add kiya
+            const result = await cloudinary.uploader.unsigned_upload(fileBase64, "royal_preset", { 
+                resource_type: "auto",
+                folder: "Royal_Gallery" 
+            });
+            
             const newMedia = new Media({ category: req.body.category, url: result.secure_url, filename: result.public_id });
             await newMedia.save();
             uploadResults.push(result.secure_url);
@@ -94,7 +98,6 @@ app.post('/upload', upload.array('mediaFiles', 10), async (req, res) => {
     }
 });
 
-// Get Gallery
 app.get('/media', async (req, res) => {
     try {
         const items = await Media.find().sort({ _id: -1 });
@@ -102,7 +105,6 @@ app.get('/media', async (req, res) => {
     } catch (err) { res.status(500).json({ success: false }); }
 });
 
-// Delete Gallery Media
 app.delete('/delete/:id', async (req, res) => {
     try {
         const item = await Media.findById(req.params.id);
@@ -113,7 +115,7 @@ app.delete('/delete/:id', async (req, res) => {
                     api_secret: 'DnmnEIWQD4eE1AmOlBHd3IAqA3Y'
                 });
                 console.log(`☁️ Cloudinary se delete hua: ${item.filename}`);
-            } catch (cloudErr) { console.log(`⚠️ Cloudinary pe nahi mila, par aage badh rahe hain...`); }
+            } catch (cloudErr) { console.log(`⚠️ Cloudinary pe nahi mila...`); }
             await Media.findByIdAndDelete(req.params.id);
         }
         res.json({ success: true, message: "Item removed!" });
@@ -124,26 +126,25 @@ app.delete('/delete/:id', async (req, res) => {
 
 
 // ==========================================
-//          📝 BOOKING APIs (UPDATED)
+//          📝 BOOKING APIs
 // ==========================================
 
-// 1. Submit New Booking (Website se aayega, ab Photo ke sath!)
-// upload.single('referenceImage') isiliye lagaya taaki image handle ho sake
 app.post('/api/bookings', upload.single('referenceImage'), async (req, res) => {
     try {
         let uploadedImageUrl = "";
 
-        // Check karo ki form ke sath koi photo aayi hai ya nahi
         if (req.file) {
             console.log("📸 Booking ke sath ek suggestion photo aayi hai!");
             const fileBase64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
             
-            // Photo Cloudinary pe upload karo
-            const result = await cloudinary.uploader.unsigned_upload(fileBase64, "royal_preset", { resource_type: "auto" });
-            uploadedImageUrl = result.secure_url; // Cloudinary ka link save karlo
+            // 🔥 NAYA: Folder name "Royal_Bookings" add kiya
+            const result = await cloudinary.uploader.unsigned_upload(fileBase64, "royal_preset", { 
+                resource_type: "auto",
+                folder: "Royal_Bookings"
+            });
+            uploadedImageUrl = result.secure_url; 
         }
 
-        // MongoDB ke liye naya booking object banao (text + image URL)
         const newBooking = new Booking({
             name: req.body.name,
             phone: req.body.phone,
@@ -160,7 +161,7 @@ app.post('/api/bookings', upload.single('referenceImage'), async (req, res) => {
             photography: req.body.photography,
             band: req.body.band,
             message: req.body.message,
-            referenceImage: uploadedImageUrl // 👈 Link database me chala gaya
+            referenceImage: uploadedImageUrl 
         });
 
         await newBooking.save();
@@ -173,7 +174,6 @@ app.post('/api/bookings', upload.single('referenceImage'), async (req, res) => {
     }
 });
 
-// 2. Get All Bookings (Admin Dashboard ke liye)
 app.get('/api/bookings', async (req, res) => {
     try {
         const bookings = await Booking.find().sort({ dateSubmit: -1 });
@@ -183,7 +183,6 @@ app.get('/api/bookings', async (req, res) => {
     }
 });
 
-// 3. Update Booking Status (Pending -> Confirmed)
 app.put('/api/bookings/:id', async (req, res) => {
     try {
         await Booking.findByIdAndUpdate(req.params.id, { status: req.body.status });
@@ -193,7 +192,6 @@ app.put('/api/bookings/:id', async (req, res) => {
     }
 });
 
-// 4. Delete Booking
 app.delete('/api/bookings/:id', async (req, res) => {
     try {
         await Booking.findByIdAndDelete(req.params.id);
@@ -208,7 +206,6 @@ app.delete('/api/bookings/:id', async (req, res) => {
 //          ⭐ REVIEW APIs
 // ==========================================
 
-// 1. Submit Review with Multiple Photos/Videos
 app.post('/api/reviews', upload.array('reviewMedia', 10), async (req, res) => {
     try {
         console.log(`⭐ New Review from ${req.body.name} with ${req.files ? req.files.length : 0} files.`);
@@ -217,7 +214,12 @@ app.post('/api/reviews', upload.array('reviewMedia', 10), async (req, res) => {
         if (req.files && req.files.length > 0) {
             for (const file of req.files) {
                 const fileBase64 = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
-                const result = await cloudinary.uploader.unsigned_upload(fileBase64, "royal_preset", { resource_type: "auto" });
+                
+                // 🔥 NAYA: Folder name "Royal_Reviews" add kiya
+                const result = await cloudinary.uploader.unsigned_upload(fileBase64, "royal_preset", { 
+                    resource_type: "auto",
+                    folder: "Royal_Reviews"
+                });
                 
                 const type = file.mimetype.startsWith('video/') ? 'video' : 'image';
                 uploadedMedia.push({ url: result.secure_url, type: type });
@@ -242,7 +244,6 @@ app.post('/api/reviews', upload.array('reviewMedia', 10), async (req, res) => {
     }
 });
 
-// 2. Get All Reviews
 app.get('/api/reviews', async (req, res) => {
     try {
         const reviews = await Review.find().sort({ createdAt: -1 }); 
@@ -252,7 +253,6 @@ app.get('/api/reviews', async (req, res) => {
     }
 });
 
-// 3. Delete Review
 app.delete('/api/reviews/:id', async (req, res) => {
     try {
         await Review.findByIdAndDelete(req.params.id);
