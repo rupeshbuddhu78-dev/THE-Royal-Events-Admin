@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | Royal Events</title>
+    <title>Admin Dashboard - The Royal Events</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -36,20 +36,36 @@
             color: var(--white);
             display: flex;
             flex-direction: column;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             z-index: 100;
         }
+        
         .sidebar-header {
             padding: 20px;
             text-align: center;
             border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
         }
+        
         .sidebar-header h2 {
             font-family: 'Playfair Display', serif;
             color: var(--primary-color);
             font-size: 22px;
             letter-spacing: 1px;
         }
+
+        .close-sidebar {
+            display: none;
+            position: absolute;
+            right: 20px;
+            font-size: 24px;
+            color: #fff;
+            cursor: pointer;
+        }
+
         .nav-links {
             flex: 1;
             padding-top: 20px;
@@ -70,12 +86,28 @@
         }
         .nav-btn i { font-size: 18px; width: 20px; text-align: center; }
 
+        /* Overlay for mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 90;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
         /* --- MAIN CONTENT --- */
         .main-content {
             flex: 1;
             display: flex;
             flex-direction: column;
             overflow-y: auto;
+            background-color: var(--bg-color);
         }
         
         .top-header {
@@ -85,9 +117,20 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 50;
         }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
         .top-header h2 { font-size: 1.5rem; color: var(--secondary-color); }
         .menu-toggle { display: none; font-size: 24px; color: var(--secondary-color); cursor: pointer; }
+        .header-right { font-weight: 500; color: var(--primary-color); }
 
         .content-section { padding: 30px; display: none; animation: fadeIn 0.4s; }
         .content-section.active { display: block; }
@@ -107,16 +150,17 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.05);
             position: relative;
             border-top: 4px solid var(--primary-color);
+            word-wrap: break-word; /* Fixes overflowing text on mobile */
         }
         
         /* Bookings Specific */
-        .data-card h3 { color: var(--secondary-color); margin-bottom: 10px; font-size: 1.2rem; display: flex; justify-content: space-between; }
-        .badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+        .data-card h3 { color: var(--secondary-color); margin-bottom: 10px; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center;}
+        .badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; text-align: center; }
         .badge.pending { background: #fff3cd; color: #ff9800; }
         .badge.confirmed { background: #e8f5e9; color: var(--success); }
         
-        .detail-row { display: flex; margin-bottom: 8px; font-size: 0.9rem; color: #555; }
-        .detail-row strong { width: 100px; color: var(--text-dark); }
+        .detail-row { display: flex; margin-bottom: 8px; font-size: 0.9rem; color: #555; flex-wrap: wrap;}
+        .detail-row strong { width: 90px; color: var(--text-dark); flex-shrink: 0;}
         
         .card-actions { margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #eee; padding-top: 15px; }
         .action-btn { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 5px; transition: 0.3s; }
@@ -129,7 +173,7 @@
         .review-stars { color: #ffc107; margin-bottom: 10px; font-size: 14px; }
         .review-text { font-style: italic; color: #666; font-size: 0.95rem; margin-bottom: 15px; border-left: 3px solid #eee; padding-left: 10px;}
         .review-media { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; }
-        .review-media img, .review-media video { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; }
+        .review-media img, .review-media video { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; flex-shrink: 0;}
 
         /* Upload Specific */
         .upload-wrapper { border: 2px dashed #ccc; padding: 40px; text-align: center; border-radius: 12px; background: #fafafa; cursor: pointer; transition: 0.3s; position: relative; margin-bottom: 20px;}
@@ -148,21 +192,45 @@
         .gallery-item img, .gallery-item video { width: 100%; height: 100%; object-fit: cover; }
         .gallery-delete { position: absolute; top: 10px; right: 10px; background: rgba(231, 76, 60, 0.9); color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 14px; }
 
-        /* --- RESPONSIVE --- */
+        /* --- RESPONSIVE MOBILE CSS --- */
         @media (max-width: 768px) {
-            .sidebar { position: fixed; left: -260px; height: 100%; box-shadow: 5px 0 15px rgba(0,0,0,0.1); }
-            .sidebar.active { left: 0; }
+            .sidebar { 
+                position: fixed; 
+                left: -280px; /* Hide outside screen */
+                height: 100%; 
+                box-shadow: 5px 0 15px rgba(0,0,0,0.2); 
+            }
+            .sidebar.active { left: 0; } /* Show when active */
+            
+            .sidebar-header { justify-content: space-between; padding: 20px; }
+            .close-sidebar { display: block; } /* Show close button */
+
             .menu-toggle { display: block; }
-            .content-section { padding: 15px; }
-            .grid-container { grid-template-columns: 1fr; }
+            
+            .top-header { padding: 15px 20px; }
+            .top-header h2 { font-size: 1.2rem; }
+            .header-right { display: none; } /* Hide 'Hello Admin' for cleaner look */
+
+            .content-section { padding: 20px 15px; }
+            
+            .grid-container { grid-template-columns: 1fr; gap: 15px; }
+            
+            .data-card h3 { font-size: 1.1rem; flex-direction: column; align-items: flex-start; gap: 5px;}
+            .detail-row { font-size: 0.85rem; }
+            .detail-row strong { width: 80px; }
+            
+            .upload-wrapper { padding: 30px 15px; }
         }
     </style>
 </head>
 <body>
 
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h2>Royal Admin</h2>
+            <i class="fa-solid fa-xmark close-sidebar" onclick="toggleSidebar()"></i>
         </div>
         <div class="nav-links">
             <button class="nav-btn active" onclick="switchSection('bookings', this)"><i class="fa-solid fa-calendar-check"></i> Bookings (Leads)</button>
@@ -175,9 +243,11 @@
 
     <div class="main-content">
         <div class="top-header">
-            <i class="fa-solid fa-bars menu-toggle" onclick="toggleSidebar()"></i>
-            <h2 id="pageTitle">Bookings Overview</h2>
-            <div style="font-weight: 500; color: var(--primary-color);">Hello, Admin</div>
+            <div class="header-left">
+                <i class="fa-solid fa-bars menu-toggle" onclick="toggleSidebar()"></i>
+                <h2 id="pageTitle">Bookings (Leads)</h2>
+            </div>
+            <div class="header-right">Hello, Admin</div>
         </div>
 
         <div id="sec-bookings" class="content-section active">
@@ -227,16 +297,17 @@
     <script>
         const SERVER_URL = "https://the-royal-events-admin.onrender.com";
 
-        // --- UI LOGIC ---
+        // --- UI LOGIC (Updated for Mobile) ---
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
         }
 
         const sectionTitles = {
             'bookings': 'Bookings (Leads)',
-            'reviews': 'Manage Client Reviews',
-            'upload': 'Upload to Live Gallery',
-            'gallery': 'Manage Live Gallery'
+            'reviews': 'Manage Reviews',
+            'upload': 'Upload to Gallery',
+            'gallery': 'Live Gallery'
         };
 
         function switchSection(secId, btnElement) {
@@ -251,8 +322,11 @@
             document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
             document.getElementById(`sec-${secId}`).classList.add('active');
 
-            // Close sidebar on mobile after click
-            if(window.innerWidth <= 768) { toggleSidebar(); }
+            // Close sidebar automatically on mobile
+            if(window.innerWidth <= 768) { 
+                document.getElementById('sidebar').classList.remove('active');
+                document.getElementById('sidebarOverlay').classList.remove('active');
+            }
 
             // Fetch data based on tab
             if(secId === 'bookings') fetchBookings();
@@ -285,13 +359,13 @@
                         grid.innerHTML += `
                             <div class="data-card" id="booking-${b._id}">
                                 <h3>${b.name} <span class="badge ${statusClass}">${b.status || 'Pending'}</span></h3>
-                                <div class="detail-row"><strong>Event:</strong> ${b.type}</div>
-                                <div class="detail-row"><strong>Date:</strong> ${b.date}</div>
-                                <div class="detail-row"><strong>Phone:</strong> <a href="tel:${b.phone}" style="text-decoration:none; color:inherit;">${b.phone}</a></div>
-                                <div class="detail-row"><strong>WhatsApp:</strong> <a href="https://wa.me/91${b.whatsapp}" target="_blank" style="color:#25d366; text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> Chat</a></div>
-                                <div class="detail-row"><strong>Guests:</strong> ${b.guests}</div>
-                                <div class="detail-row"><strong>Budget:</strong> ${b.budget}</div>
-                                <div class="detail-row"><strong>Extras:</strong> Catering(${b.catering}), Photo(${b.photography})</div>
+                                <div class="detail-row"><strong>Event:</strong> <span>${b.type}</span></div>
+                                <div class="detail-row"><strong>Date:</strong> <span>${b.date}</span></div>
+                                <div class="detail-row"><strong>Phone:</strong> <span><a href="tel:${b.phone}" style="text-decoration:none; color:inherit;">${b.phone}</a></span></div>
+                                <div class="detail-row"><strong>WhatsApp:</strong> <span><a href="https://wa.me/91${b.whatsapp}" target="_blank" style="color:#25d366; text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> Chat</a></span></div>
+                                <div class="detail-row"><strong>Guests:</strong> <span>${b.guests}</span></div>
+                                <div class="detail-row"><strong>Budget:</strong> <span>${b.budget}</span></div>
+                                <div class="detail-row"><strong>Extras:</strong> <span>Catering(${b.catering}), Photo(${b.photography})</span></div>
                                 <div class="detail-row" style="margin-top:10px; font-style:italic;">"${b.message || 'No extra message'}"</div>
                                 ${refImageHtml}
                                 
@@ -305,7 +379,7 @@
                 } else {
                     grid.innerHTML = '<p style="text-align:center; width:100%; color:#777;">No bookings found.</p>';
                 }
-            } catch (err) { loader.innerHTML = '<span style="color:red;">Error connecting to server.</span>'; }
+            } catch (err) { loader.innerHTML = '<span style="color:red; text-align:center; width:100%;">Error connecting to server.</span>'; }
         }
 
         async function deleteBooking(id) {
@@ -360,7 +434,7 @@
 
                         grid.innerHTML += `
                             <div class="data-card" id="review-${rev._id}">
-                                <h3>${rev.name} <span style="font-size:0.8rem; color:#888;">${rev.event}</span></h3>
+                                <h3>${rev.name} <span style="font-size:0.8rem; color:#888; font-weight:normal;">${rev.event}</span></h3>
                                 <div class="review-stars">${getStars(rev.rating)}</div>
                                 <div class="review-text">"${rev.comment}"</div>
                                 ${mediaHtml}
@@ -373,7 +447,7 @@
                 } else {
                     grid.innerHTML = '<p style="text-align:center; width:100%; color:#777;">No reviews found.</p>';
                 }
-            } catch (err) { loader.innerHTML = '<span style="color:red;">Error connecting to server.</span>'; }
+            } catch (err) { loader.innerHTML = '<span style="color:red; text-align:center; width:100%;">Error connecting to server.</span>'; }
         }
 
         async function deleteReview(id) {
@@ -451,7 +525,7 @@
                 } else {
                     grid.innerHTML = '<p style="text-align:center; width:100%; color:#777;">Gallery is empty.</p>';
                 }
-            } catch (err) { loader.innerHTML = '<span style="color:red;">Error connecting to server.</span>'; }
+            } catch (err) { loader.innerHTML = '<span style="color:red; text-align:center; width:100%;">Error connecting to server.</span>'; }
         }
 
         async function deleteGalleryItem(id) {
