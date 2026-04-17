@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - The Royal Events</title>
+    <title>Admin Dashboard | Royal Events</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -11,10 +11,11 @@
         :root {
             --primary-color: #d4af37;
             --secondary-color: #1a1a2e;
-            --bg-color: #f0f2f5;
+            --bg-color: #f4f6f9;
             --text-dark: #333;
             --white: #ffffff;
-            --danger: #dc3545;
+            --danger: #e74c3c;
+            --success: #2ecc71;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -23,197 +24,202 @@
             font-family: 'Poppins', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-dark);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        /* --- Sidebar & Header --- */
-        header {
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 260px;
             background-color: var(--secondary-color);
             color: var(--white);
-            padding: 20px 40px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s;
+            z-index: 100;
+        }
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-header h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--primary-color);
+            font-size: 22px;
+            letter-spacing: 1px;
+        }
+        .nav-links {
+            flex: 1;
+            padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .nav-btn {
+            background: none; border: none; color: #bbb;
+            padding: 15px 25px; text-align: left; font-size: 16px;
+            font-family: 'Poppins', sans-serif; cursor: pointer;
+            transition: 0.3s; display: flex; align-items: center; gap: 15px;
+        }
+        .nav-btn:hover, .nav-btn.active {
+            background-color: rgba(212, 175, 55, 0.1);
+            color: var(--primary-color);
+            border-left: 4px solid var(--primary-color);
+        }
+        .nav-btn i { font-size: 18px; width: 20px; text-align: center; }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        .top-header {
+            background: var(--white);
+            padding: 15px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
+        .top-header h2 { font-size: 1.5rem; color: var(--secondary-color); }
+        .menu-toggle { display: none; font-size: 24px; color: var(--secondary-color); cursor: pointer; }
 
-        .logo {
-            font-family: 'Playfair Display', serif;
-            font-size: 24px;
-            color: var(--primary-color);
-            letter-spacing: 1px;
-        }
-
-        /* --- Dashboard Layout --- */
-        .dashboard-container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-
-        /* --- Tabs --- */
-        .tabs {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            justify-content: center;
-        }
-
-        .tab-btn {
-            background-color: var(--white);
-            border: 2px solid transparent;
-            padding: 12px 30px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            color: var(--secondary-color);
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        .tab-btn.active, .tab-btn:hover {
-            background-color: var(--primary-color);
-            color: var(--white);
-        }
-
-        /* --- Tab Content Sections --- */
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.4s ease;
-        }
-
-        .tab-content.active { display: block; }
-
+        .content-section { padding: 30px; display: none; animation: fadeIn 0.4s; }
+        .content-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- Upload Section Style --- */
-        .upload-card {
+        /* --- CARDS & GRIDS --- */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .data-card {
             background: var(--white);
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            max-width: 600px;
-            margin: 0 auto;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            position: relative;
+            border-top: 4px solid var(--primary-color);
         }
-
-        .upload-card h2 { color: var(--secondary-color); margin-bottom: 25px; text-align: center; }
-
-        .form-group { margin-bottom: 20px; }
-        .form-group label { font-weight: 600; display: block; margin-bottom: 8px; color: #555; }
         
-        select, input[type="file"] {
-            width: 100%; padding: 12px; border: 1px solid #ddd;
-            border-radius: 8px; outline: none; font-family: 'Poppins', sans-serif;
-            background-color: #f9f9f9;
-        }
-
-        .file-upload-wrapper {
-            position: relative; border: 2px dashed #ccc; border-radius: 10px;
-            padding: 30px; text-align: center; background: #fafafa; transition: 0.3s;
-        }
-        .file-upload-wrapper:hover { border-color: var(--primary-color); }
-        .file-upload-wrapper input[type="file"] {
-            position: absolute; left: 0; top: 0; width: 100%; height: 100%;
-            opacity: 0; cursor: pointer;
-        }
-        .file-upload-wrapper i { font-size: 40px; color: var(--primary-color); margin-bottom: 10px; }
-
-        .preview-container {
-            margin-top: 20px; text-align: center; display: none;
-            display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
-        }
-        .preview-container img, .preview-container video {
-            width: 100px; height: 100px; object-fit: cover; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .btn-submit {
-            background-color: var(--secondary-color); color: var(--white); font-weight: bold;
-            padding: 15px; width: 100%; border: none; border-radius: 8px; cursor: pointer;
-            font-size: 16px; margin-top: 20px; transition: 0.3s;
-        }
-        .btn-submit:hover { background-color: var(--primary-color); }
-
-        /* --- Manage/Delete Gallery Section --- */
-        .gallery-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;
-        }
-
-        .gallery-card {
-            background: var(--white); border-radius: 10px; overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08); position: relative; transition: 0.3s;
-        }
-        .gallery-card:hover { transform: translateY(-5px); }
-
-        .gallery-card img, .gallery-card video { width: 100%; height: 200px; object-fit: cover; display: block; }
+        /* Bookings Specific */
+        .data-card h3 { color: var(--secondary-color); margin-bottom: 10px; font-size: 1.2rem; display: flex; justify-content: space-between; }
+        .badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+        .badge.pending { background: #fff3cd; color: #ff9800; }
+        .badge.confirmed { background: #e8f5e9; color: var(--success); }
         
-        .gallery-info { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .tag { background: #eee; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .detail-row { display: flex; margin-bottom: 8px; font-size: 0.9rem; color: #555; }
+        .detail-row strong { width: 100px; color: var(--text-dark); }
         
-        .btn-delete {
-            background-color: var(--danger); color: white; border: none;
-            width: 35px; height: 35px; border-radius: 50%; cursor: pointer;
-            display: flex; justify-content: center; align-items: center; transition: 0.3s;
+        .card-actions { margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #eee; padding-top: 15px; }
+        .action-btn { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 5px; transition: 0.3s; }
+        .btn-del { background: #fee; color: var(--danger); }
+        .btn-del:hover { background: var(--danger); color: #fff; }
+        .btn-ok { background: #e8f5e9; color: var(--success); }
+        .btn-ok:hover { background: var(--success); color: #fff; }
+
+        /* Reviews Specific */
+        .review-stars { color: #ffc107; margin-bottom: 10px; font-size: 14px; }
+        .review-text { font-style: italic; color: #666; font-size: 0.95rem; margin-bottom: 15px; border-left: 3px solid #eee; padding-left: 10px;}
+        .review-media { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; }
+        .review-media img, .review-media video { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; }
+
+        /* Upload Specific */
+        .upload-wrapper { border: 2px dashed #ccc; padding: 40px; text-align: center; border-radius: 12px; background: #fafafa; cursor: pointer; transition: 0.3s; position: relative; margin-bottom: 20px;}
+        .upload-wrapper:hover { border-color: var(--primary-color); }
+        .upload-wrapper input[type="file"] { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .upload-wrapper i { font-size: 40px; color: var(--primary-color); margin-bottom: 10px; }
+        
+        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px; font-family: 'Poppins', sans-serif;}
+        .btn-primary { background: var(--secondary-color); color: #fff; padding: 12px 20px; border: none; border-radius: 8px; width: 100%; font-size: 1rem; cursor: pointer; transition: 0.3s; }
+        .btn-primary:hover { background: var(--primary-color); }
+
+        .loader { text-align: center; padding: 40px; color: var(--primary-color); font-size: 1.2rem; display: none; }
+
+        /* Gallery Grid */
+        .gallery-item { position: relative; border-radius: 8px; overflow: hidden; height: 200px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+        .gallery-item img, .gallery-item video { width: 100%; height: 100%; object-fit: cover; }
+        .gallery-delete { position: absolute; top: 10px; right: 10px; background: rgba(231, 76, 60, 0.9); color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 14px; }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: -260px; height: 100%; box-shadow: 5px 0 15px rgba(0,0,0,0.1); }
+            .sidebar.active { left: 0; }
+            .menu-toggle { display: block; }
+            .content-section { padding: 15px; }
+            .grid-container { grid-template-columns: 1fr; }
         }
-        .btn-delete:hover { background-color: #b02a37; transform: scale(1.1); }
-
-        /* Loader */
-        .loader { display: none; text-align: center; margin-top: 15px; color: var(--primary-color); font-weight: 600; }
-        .loader i { animation: spin 1s linear infinite; margin-right: 5px; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo">Royal Events Admin</div>
-        <a href="index.html" style="color: white; text-decoration: none;"><i class="fa-solid fa-house"></i> View Website</a>
-    </header>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Royal Admin</h2>
+        </div>
+        <div class="nav-links">
+            <button class="nav-btn active" onclick="switchSection('bookings', this)"><i class="fa-solid fa-calendar-check"></i> Bookings (Leads)</button>
+            <button class="nav-btn" onclick="switchSection('reviews', this)"><i class="fa-solid fa-star"></i> Manage Reviews</button>
+            <button class="nav-btn" onclick="switchSection('upload', this)"><i class="fa-solid fa-cloud-arrow-up"></i> Upload to Gallery</button>
+            <button class="nav-btn" onclick="switchSection('gallery', this)"><i class="fa-solid fa-images"></i> Live Gallery</button>
+            <a href="index.html" class="nav-btn" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); text-decoration: none;"><i class="fa-solid fa-globe"></i> View Website</a>
+        </div>
+    </div>
 
-    <div class="dashboard-container">
-        
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('upload')"><i class="fa-solid fa-cloud-arrow-up"></i> Upload Media</button>
-            <button class="tab-btn" onclick="switchTab('manage')"><i class="fa-solid fa-images"></i> Manage Gallery</button>
+    <div class="main-content">
+        <div class="top-header">
+            <i class="fa-solid fa-bars menu-toggle" onclick="toggleSidebar()"></i>
+            <h2 id="pageTitle">Bookings Overview</h2>
+            <div style="font-weight: 500; color: var(--primary-color);">Hello, Admin</div>
         </div>
 
-        <div id="upload" class="tab-content active">
-            <div class="upload-card">
-                <h2>Add New Memories</h2>
+        <div id="sec-bookings" class="content-section active">
+            <div class="loader" id="loader-bookings"><i class="fa-solid fa-spinner fa-spin"></i> Fetching new leads...</div>
+            <div class="grid-container" id="bookingsGrid">
+                </div>
+        </div>
+
+        <div id="sec-reviews" class="content-section">
+            <div class="loader" id="loader-reviews"><i class="fa-solid fa-spinner fa-spin"></i> Fetching client reviews...</div>
+            <div class="grid-container" id="reviewsGrid">
+                </div>
+        </div>
+
+        <div id="sec-upload" class="content-section">
+            <div class="data-card" style="max-width: 600px; margin: 0 auto;">
                 <form id="uploadForm">
-                    <div class="form-group">
-                        <label>Select Category</label>
-                        <select name="category" id="category" required>
-                            <option value="wedding">Wedding / Marriage</option>
-                            <option value="birthday">Birthday Party</option>
-                            <option value="video">Video Event</option>
-                        </select>
+                    <label style="font-weight: 500; margin-bottom: 5px; display:block;">Select Category</label>
+                    <select class="form-control" id="uploadCategory" required>
+                        <option value="wedding">Wedding / Marriage</option>
+                        <option value="birthday">Birthday Party</option>
+                        <option value="video">Video Event</option>
+                    </select>
+
+                    <div class="upload-wrapper">
+                        <i class="fa-solid fa-file-image"></i>
+                        <p>Tap to select multiple photos/videos (Max 10)</p>
+                        <input type="file" id="mediaFiles" accept="image/*, video/*" multiple required>
                     </div>
+                    
+                    <div id="previewContainer" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;"></div>
 
-                    <div class="form-group">
-                        <label>Upload Files (Multiple)</label>
-                        <div class="file-upload-wrapper">
-                            <i class="fa-solid fa-file-arrow-up"></i>
-                            <p>Click or Drag & Drop Photos/Videos here</p>
-                            <input type="file" name="mediaFiles" id="mediaFile" accept="image/*, video/*" multiple required>
-                        </div>
-                    </div>
-
-                    <div class="preview-container" id="previewContainer">
-                        </div>
-
-                    <button type="submit" class="btn-submit" id="submitBtn">Upload to Website</button>
-                    <div class="loader" id="uploadLoader"><i class="fa-solid fa-spinner"></i> Uploading... Please wait</div>
+                    <button type="submit" class="btn-primary" id="btnUpload"><i class="fa-solid fa-upload"></i> Upload to Website</button>
+                    <div class="loader" id="loader-upload" style="padding: 10px;"><i class="fa-solid fa-spinner fa-spin"></i> Uploading...</div>
                 </form>
             </div>
         </div>
 
-        <div id="manage" class="tab-content">
-            <h2 style="margin-bottom: 20px; color: var(--secondary-color);">Manage Website Gallery</h2>
-            <p style="margin-bottom: 20px; color: #666;">Here you can view and delete images/videos currently live on your website.</p>
-            
-            <div class="gallery-grid" id="adminGalleryGrid"></div>
-            <div class="loader" id="galleryLoader" style="display: block;"><i class="fa-solid fa-spinner"></i> Fetching Gallery...</div>
+        <div id="sec-gallery" class="content-section">
+            <div class="loader" id="loader-gallery"><i class="fa-solid fa-spinner fa-spin"></i> Loading live gallery...</div>
+            <div class="grid-container" id="galleryGrid">
+                </div>
         </div>
 
     </div>
@@ -221,147 +227,243 @@
     <script>
         const SERVER_URL = "https://the-royal-events-admin.onrender.com";
 
-        // --- 1. TAB SWITCHING LOGIC ---
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
-
-            if(tabId === 'manage') {
-                loadGallery();
-            }
+        // --- UI LOGIC ---
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
         }
 
-        // --- 2. MULTI-PREVIEW LOGIC ---
-        document.getElementById('mediaFile').addEventListener('change', function(event) {
-            const files = event.target.files;
-            const previewContainer = document.getElementById('previewContainer');
-            
-            previewContainer.innerHTML = ''; // Purane previews saaf karo
-            previewContainer.style.display = 'flex';
+        const sectionTitles = {
+            'bookings': 'Bookings (Leads)',
+            'reviews': 'Manage Client Reviews',
+            'upload': 'Upload to Live Gallery',
+            'gallery': 'Manage Live Gallery'
+        };
 
-            if (files.length > 0) {
-                Array.from(files).forEach(file => {
-                    const url = URL.createObjectURL(file);
-                    if (file.type.startsWith('image/')) {
-                        const img = document.createElement('img');
-                        img.src = url;
-                        previewContainer.appendChild(img);
-                    } else if (file.type.startsWith('video/')) {
-                        const video = document.createElement('video');
-                        video.src = url;
-                        previewContainer.appendChild(video);
-                    }
-                });
-            }
-        });
+        function switchSection(secId, btnElement) {
+            // Update Menu Active state
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
 
-        // --- 3. MULTI-UPLOAD AJAX LOGIC ---
-        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const loader = document.getElementById('uploadLoader');
-            const fileInput = document.getElementById('mediaFile');
-            const category = document.getElementById('category').value;
+            // Update Header Title
+            document.getElementById('pageTitle').innerText = sectionTitles[secId];
 
-            // NAYA: FormData manually banana padega multiple files ke liye
-            const formData = new FormData();
-            formData.append('category', category);
-            
-            // Sabhi files ko loop karke add karo
-            Array.from(fileInput.files).forEach(file => {
-                formData.append('mediaFiles', file);
-            });
+            // Hide all sections, show target
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`sec-${secId}`).classList.add('active');
 
-            submitBtn.style.display = 'none';
-            loader.style.display = 'block';
+            // Close sidebar on mobile after click
+            if(window.innerWidth <= 768) { toggleSidebar(); }
+
+            // Fetch data based on tab
+            if(secId === 'bookings') fetchBookings();
+            if(secId === 'reviews') fetchReviews();
+            if(secId === 'gallery') fetchGallery();
+        }
+
+        // ==========================================
+        //         1. BOOKINGS LOGIC
+        // ==========================================
+        async function fetchBookings() {
+            const grid = document.getElementById('bookingsGrid');
+            const loader = document.getElementById('loader-bookings');
+            grid.innerHTML = ''; loader.style.display = 'block';
 
             try {
-                const response = await fetch(`${SERVER_URL}/upload`, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-                
-                if(data.success) {
-                    alert(`✅ Done! ${fileInput.files.length} items uploaded successfully.`);
-                    this.reset();
-                    document.getElementById('previewContainer').style.display = 'none';
-                } else {
-                    alert("❌ Error: " + data.message);
-                }
-            } catch (error) {
-                alert("❌ Server connection failed!");
-                console.error(error);
-            } finally {
-                submitBtn.style.display = 'block';
-                loader.style.display = 'none';
-            }
-        });
-
-        // --- 4. FETCH GALLERY LOGIC ---
-        async function loadGallery() {
-            const grid = document.getElementById('adminGalleryGrid');
-            const loader = document.getElementById('galleryLoader');
-            
-            grid.innerHTML = '';
-            loader.style.display = 'block';
-
-            try {
-                const response = await fetch(`${SERVER_URL}/media`);
-                const data = await response.json();
+                const res = await fetch(`${SERVER_URL}/api/bookings`);
+                const data = await res.json();
                 loader.style.display = 'none';
 
-                if(data.items && data.items.length > 0) {
-                    data.items.forEach(item => {
-                        const isVideo = item.url.match(/\.(mp4|mov|webm)$/i);
-                        const mediaTag = isVideo 
-                            ? `<video src="${item.url}" controls></video>` 
-                            : `<img src="${item.url}" alt="Event">`;
+                if(data.success && data.data.length > 0) {
+                    data.data.forEach(b => {
+                        const dateObj = new Date(b.dateSubmit).toLocaleDateString('en-GB');
+                        let statusClass = b.status === 'Confirmed' ? 'confirmed' : 'pending';
+                        
+                        let refImageHtml = b.referenceImage 
+                            ? `<div style="margin-top:10px;"><a href="${b.referenceImage}" target="_blank" style="color:var(--primary-color); font-size:0.85rem;"><i class="fa-solid fa-image"></i> View Reference Image</a></div>` 
+                            : '';
 
                         grid.innerHTML += `
-                            <div class="gallery-card" id="card-${item._id}">
-                                ${mediaTag}
-                                <div class="gallery-info">
-                                    <span class="tag">${item.category}</span>
-                                    <button class="btn-delete" title="Delete" onclick="deleteMedia('${item._id}')">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
+                            <div class="data-card" id="booking-${b._id}">
+                                <h3>${b.name} <span class="badge ${statusClass}">${b.status || 'Pending'}</span></h3>
+                                <div class="detail-row"><strong>Event:</strong> ${b.type}</div>
+                                <div class="detail-row"><strong>Date:</strong> ${b.date}</div>
+                                <div class="detail-row"><strong>Phone:</strong> <a href="tel:${b.phone}" style="text-decoration:none; color:inherit;">${b.phone}</a></div>
+                                <div class="detail-row"><strong>WhatsApp:</strong> <a href="https://wa.me/91${b.whatsapp}" target="_blank" style="color:#25d366; text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> Chat</a></div>
+                                <div class="detail-row"><strong>Guests:</strong> ${b.guests}</div>
+                                <div class="detail-row"><strong>Budget:</strong> ${b.budget}</div>
+                                <div class="detail-row"><strong>Extras:</strong> Catering(${b.catering}), Photo(${b.photography})</div>
+                                <div class="detail-row" style="margin-top:10px; font-style:italic;">"${b.message || 'No extra message'}"</div>
+                                ${refImageHtml}
+                                
+                                <div class="card-actions">
+                                    <button class="action-btn btn-ok" onclick="updateBookingStatus('${b._id}', 'Confirmed')" title="Mark Confirmed"><i class="fa-solid fa-check"></i></button>
+                                    <button class="action-btn btn-del" onclick="deleteBooking('${b._id}')" title="Delete Lead"><i class="fa-solid fa-trash"></i> Delete</button>
                                 </div>
                             </div>
                         `;
                     });
                 } else {
-                    grid.innerHTML = '<p style="grid-column: 1/-1; text-align:center;">No media uploaded yet.</p>';
+                    grid.innerHTML = '<p style="text-align:center; width:100%; color:#777;">No bookings found.</p>';
                 }
-            } catch (error) {
-                loader.style.display = 'none';
-                grid.innerHTML = '<p style="text-align:center; color:red;">Failed to connect to server.</p>';
-            }
+            } catch (err) { loader.innerHTML = '<span style="color:red;">Error connecting to server.</span>'; }
         }
 
-        // --- 5. DELETE MEDIA LOGIC ---
-        async function deleteMedia(id) {
-            if(!confirm("Humesha ke liye delete kar dein?")) return;
+        async function deleteBooking(id) {
+            if(!confirm("Are you sure you want to permanently delete this booking lead?")) return;
+            try {
+                await fetch(`${SERVER_URL}/api/bookings/${id}`, { method: 'DELETE' });
+                document.getElementById(`booking-${id}`).remove();
+            } catch(e) { alert("Delete failed"); }
+        }
+
+        async function updateBookingStatus(id, status) {
+            try {
+                await fetch(`${SERVER_URL}/api/bookings/${id}`, {
+                    method: 'PUT', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({status: status})
+                });
+                fetchBookings(); // Refresh list to show green badge
+            } catch(e) { alert("Status update failed"); }
+        }
+
+
+        // ==========================================
+        //         2. REVIEWS LOGIC
+        // ==========================================
+        function getStars(rating) {
+            let html = '';
+            for(let i=1; i<=5; i++) { html += i<=rating ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-regular fa-star" style="color:#ddd"></i>'; }
+            return html;
+        }
+
+        async function fetchReviews() {
+            const grid = document.getElementById('reviewsGrid');
+            const loader = document.getElementById('loader-reviews');
+            grid.innerHTML = ''; loader.style.display = 'block';
 
             try {
-                const response = await fetch(`${SERVER_URL}/delete/${id}`, { method: 'DELETE' });
-                const data = await response.json();
+                const res = await fetch(`${SERVER_URL}/api/reviews`);
+                const data = await res.json();
+                loader.style.display = 'none';
 
-                if(data.success) {
-                    document.getElementById(`card-${id}`).remove();
-                    alert("🗑️ Item Deleted!");
+                if(data.success && data.data.length > 0) {
+                    data.data.forEach(rev => {
+                        let mediaHtml = '';
+                        if(rev.media && rev.media.length > 0) {
+                            mediaHtml = '<div class="review-media">';
+                            rev.media.forEach(m => {
+                                if(m.type === 'video') mediaHtml += `<video src="${m.url}" controls></video>`;
+                                else mediaHtml += `<a href="${m.url}" target="_blank"><img src="${m.url}"></a>`;
+                            });
+                            mediaHtml += '</div>';
+                        }
+
+                        grid.innerHTML += `
+                            <div class="data-card" id="review-${rev._id}">
+                                <h3>${rev.name} <span style="font-size:0.8rem; color:#888;">${rev.event}</span></h3>
+                                <div class="review-stars">${getStars(rev.rating)}</div>
+                                <div class="review-text">"${rev.comment}"</div>
+                                ${mediaHtml}
+                                <div class="card-actions">
+                                    <button class="action-btn btn-del" onclick="deleteReview('${rev._id}')"><i class="fa-solid fa-trash"></i> Delete Review</button>
+                                </div>
+                            </div>
+                        `;
+                    });
                 } else {
-                    alert("❌ Delete fail ho gaya.");
+                    grid.innerHTML = '<p style="text-align:center; width:100%; color:#777;">No reviews found.</p>';
                 }
-            } catch (error) {
-                alert("❌ Server connection error!");
-            }
+            } catch (err) { loader.innerHTML = '<span style="color:red;">Error connecting to server.</span>'; }
         }
+
+        async function deleteReview(id) {
+            if(!confirm("Delete this review and its photos permanently? This will remove it from the live website.")) return;
+            try {
+                await fetch(`${SERVER_URL}/api/reviews/${id}`, { method: 'DELETE' });
+                document.getElementById(`review-${id}`).remove();
+            } catch(e) { alert("Delete failed"); }
+        }
+
+
+        // ==========================================
+        //         3. UPLOAD GALLERY LOGIC
+        // ==========================================
+        document.getElementById('mediaFiles').addEventListener('change', function(e) {
+            const preview = document.getElementById('previewContainer');
+            preview.innerHTML = '';
+            Array.from(e.target.files).forEach(file => {
+                const url = URL.createObjectURL(file);
+                if(file.type.startsWith('video/')) preview.innerHTML += `<video src="${url}" style="width:60px; height:60px; object-fit:cover; border-radius:5px;"></video>`;
+                else preview.innerHTML += `<img src="${url}" style="width:60px; height:60px; object-fit:cover; border-radius:5px;">`;
+            });
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnUpload');
+            const loader = document.getElementById('loader-upload');
+            const files = document.getElementById('mediaFiles').files;
+            
+            btn.style.display = 'none'; loader.style.display = 'block';
+            
+            const formData = new FormData();
+            formData.append('category', document.getElementById('uploadCategory').value);
+            Array.from(files).forEach(f => formData.append('mediaFiles', f));
+
+            try {
+                const res = await fetch(`${SERVER_URL}/upload`, { method: 'POST', body: formData });
+                const data = await res.json();
+                if(data.success) {
+                    alert("✅ Uploaded to Live Gallery successfully!");
+                    this.reset();
+                    document.getElementById('previewContainer').innerHTML = '';
+                } else alert("❌ Error: " + data.message);
+            } catch(e) { alert("Upload failed"); }
+            finally { btn.style.display = 'block'; loader.style.display = 'none'; }
+        });
+
+
+        // ==========================================
+        //         4. MANAGE LIVE GALLERY
+        // ==========================================
+        async function fetchGallery() {
+            const grid = document.getElementById('galleryGrid');
+            const loader = document.getElementById('loader-gallery');
+            grid.innerHTML = ''; loader.style.display = 'block';
+
+            try {
+                const res = await fetch(`${SERVER_URL}/media`);
+                const data = await res.json();
+                loader.style.display = 'none';
+
+                if(data.items && data.items.length > 0) {
+                    data.items.forEach(item => {
+                        const isVideo = item.url.match(/\.(mp4|mov|webm)$/i);
+                        const mediaTag = isVideo ? `<video src="${item.url}" controls></video>` : `<img src="${item.url}">`;
+                        
+                        grid.innerHTML += `
+                            <div class="gallery-item" id="gal-${item._id}">
+                                ${mediaTag}
+                                <button class="gallery-delete" onclick="deleteGalleryItem('${item._id}')"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        `;
+                    });
+                } else {
+                    grid.innerHTML = '<p style="text-align:center; width:100%; color:#777;">Gallery is empty.</p>';
+                }
+            } catch (err) { loader.innerHTML = '<span style="color:red;">Error connecting to server.</span>'; }
+        }
+
+        async function deleteGalleryItem(id) {
+            if(!confirm("Delete this photo/video from your live website gallery?")) return;
+            try {
+                await fetch(`${SERVER_URL}/delete/${id}`, { method: 'DELETE' });
+                document.getElementById(`gal-${id}`).remove();
+            } catch(e) { alert("Delete failed"); }
+        }
+
+        // Initialize first tab
+        window.onload = () => fetchBookings();
     </script>
 </body>
 </html>
