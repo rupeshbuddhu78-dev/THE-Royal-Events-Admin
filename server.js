@@ -61,7 +61,7 @@ const Review = mongoose.model('Review', new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }));
 
-// D. Stage Model (🔥 NAYA ADD KIYA HAI)
+// D. Stage Model 
 const Stage = mongoose.model('Stage', new mongoose.Schema({
     heading: String,
     text: String,
@@ -135,7 +135,7 @@ app.delete('/delete/:id', async (req, res) => {
 
 
 // ==========================================
-//          ✨ STAGE DECOR APIs (NEW)
+//          ✨ STAGE DECOR APIs
 // ==========================================
 
 app.post('/api/stages', upload.single('stageImage'), async (req, res) => {
@@ -177,6 +177,29 @@ app.get('/api/stages', async (req, res) => {
         res.json({ success: true, data: stages });
     } catch (err) {
         res.status(500).json({ success: false, message: "Failed to fetch stages" });
+    }
+});
+
+// 🔥 NAYA ADD KIYA HUA EDIT (PUT) API 🔥
+app.put('/api/stages/:id', async (req, res) => {
+    try {
+        const { heading, text, price } = req.body;
+        
+        const updatedStage = await Stage.findByIdAndUpdate(
+            req.params.id, 
+            { heading, text, price }, 
+            { new: true } // Update hone ke baad naya data return karega
+        );
+        
+        if (!updatedStage) {
+            return res.status(404).json({ success: false, message: "Stage not found!" });
+        }
+
+        console.log(`✏️ Stage Updated: ${updatedStage.heading}`);
+        res.json({ success: true, message: "Stage Details Updated Successfully!", data: updatedStage });
+    } catch (err) {
+        console.log("❌ Stage Update Error:", err.message);
+        res.status(500).json({ success: false, message: "Error updating stage details" });
     }
 });
 
