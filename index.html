@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - The Royal Events</title>
+    <title>Admin Dashboard - The Royal Events Planner</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -22,8 +22,12 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Poppins', sans-serif; background-color: var(--bg-color); color: var(--text-dark);
-            display: flex; height: 100vh; overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
         }
 
         /* --- SIDEBAR --- */
@@ -31,10 +35,12 @@
             width: 260px; background-color: var(--secondary-color); color: var(--white);
             display: flex; flex-direction: column; transition: all 0.3s ease; z-index: 100;
         }
+        
         .sidebar-header {
             padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);
             display: flex; justify-content: center; align-items: center; position: relative;
         }
+        
         .sidebar-header h2 { font-family: 'Playfair Display', serif; color: var(--primary-color); font-size: 22px; letter-spacing: 1px; }
         .close-sidebar { display: none; position: absolute; right: 20px; font-size: 24px; color: #fff; cursor: pointer; }
 
@@ -46,7 +52,6 @@
         .nav-btn:hover, .nav-btn.active { background-color: rgba(212, 175, 55, 0.1); color: var(--primary-color); border-left: 4px solid var(--primary-color); }
         .nav-btn i { font-size: 18px; width: 20px; text-align: center; }
 
-        /* Overlay for mobile */
         .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 90; opacity: 0; transition: opacity 0.3s ease; }
         .sidebar-overlay.active { display: block; opacity: 1; }
 
@@ -57,7 +62,7 @@
         .header-left { display: flex; align-items: center; gap: 15px; }
         .top-header h2 { font-size: 1.5rem; color: var(--secondary-color); }
         .menu-toggle { display: none; font-size: 24px; color: var(--secondary-color); cursor: pointer; }
-        .header-right { font-weight: 500; color: var(--primary-color); }
+        .header-right { font-weight: 600; color: var(--primary-color); font-size: 1.1rem; }
 
         .content-section { padding: 30px; display: none; animation: fadeIn 0.4s; }
         .content-section.active { display: block; }
@@ -66,12 +71,9 @@
         /* --- CARDS & GRIDS --- */
         .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
 
-        .data-card {
-            background: var(--white); border-radius: 12px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            position: relative; border-top: 4px solid var(--primary-color); word-wrap: break-word;
-        }
-        
+        .data-card { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); position: relative; border-top: 4px solid var(--primary-color); word-wrap: break-word; }
         .data-card h3 { color: var(--secondary-color); margin-bottom: 10px; font-size: 1.2rem; display: flex; justify-content: space-between; align-items: center;}
+        
         .badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; text-align: center; }
         .badge.pending { background: #fff3cd; color: #ff9800; }
         .badge.confirmed { background: #e8f5e9; color: var(--success); }
@@ -88,11 +90,13 @@
         .btn-edit { background: #e3f2fd; color: var(--info); }
         .btn-edit:hover { background: var(--info); color: #fff; }
 
-        /* Stage Card Specific */
-        .stage-img-preview { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; border: 1px solid #eee;}
-        .stage-price-tag { position: absolute; top: 30px; right: 20px; background: var(--secondary-color); color: var(--primary-color); padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: bold;}
+        /* Review specific */
+        .review-stars { color: #ffc107; margin-bottom: 10px; font-size: 14px; }
+        .review-text { font-style: italic; color: #666; font-size: 0.95rem; margin-bottom: 15px; border-left: 3px solid #eee; padding-left: 10px;}
+        .review-media { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; }
+        .review-media img, .review-media video { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; flex-shrink: 0;}
 
-        /* Upload Specific */
+        /* Upload specific */
         .upload-wrapper { border: 2px dashed #ccc; padding: 40px; text-align: center; border-radius: 12px; background: #fafafa; cursor: pointer; transition: 0.3s; position: relative; margin-bottom: 20px;}
         .upload-wrapper:hover { border-color: var(--primary-color); }
         .upload-wrapper input[type="file"] { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
@@ -104,7 +108,16 @@
 
         .loader { text-align: center; padding: 40px; color: var(--primary-color); font-size: 1.2rem; display: none; }
 
-        /* Modal for Editing */
+        /* Gallery specific */
+        .gallery-item { position: relative; border-radius: 8px; overflow: hidden; height: 200px; box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+        .gallery-item img, .gallery-item video { width: 100%; height: 100%; object-fit: cover; }
+        .gallery-delete { position: absolute; top: 10px; right: 10px; background: rgba(231, 76, 60, 0.9); color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 14px; }
+
+        /* Stage specifics */
+        .stage-img-preview { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; border: 1px solid #eee;}
+        .stage-price-tag { position: absolute; top: 30px; right: 20px; background: var(--secondary-color); color: var(--primary-color); padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: bold;}
+
+        /* Modal specific */
         .modal-overlay { display: none; position: fixed; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; }
         .modal-overlay.active { display: flex; }
         .modal-box { background: #fff; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: fadeIn 0.3s; }
@@ -112,7 +125,6 @@
         .modal-close { font-size: 20px; cursor: pointer; color: #888; }
         .modal-close:hover { color: var(--danger); }
 
-        /* --- RESPONSIVE MOBILE CSS --- */
         @media (max-width: 768px) {
             .sidebar { position: fixed; left: -280px; height: 100%; box-shadow: 5px 0 15px rgba(0,0,0,0.2); }
             .sidebar.active { left: 0; }
@@ -142,6 +154,7 @@
             <button class="nav-btn" onclick="switchSection('stages', this)"><i class="fa-solid fa-chess-rook"></i> Manage Stages</button>
             <button class="nav-btn" onclick="switchSection('reviews', this)"><i class="fa-solid fa-star"></i> Manage Reviews</button>
             <button class="nav-btn" onclick="switchSection('upload', this)"><i class="fa-solid fa-cloud-arrow-up"></i> Upload to Gallery</button>
+            <button class="nav-btn" onclick="switchSection('gallery', this)"><i class="fa-solid fa-images"></i> Live Gallery</button>
             <a href="index.html" class="nav-btn" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); text-decoration: none;"><i class="fa-solid fa-globe"></i> View Website</a>
         </div>
     </div>
@@ -152,7 +165,7 @@
                 <i class="fa-solid fa-bars menu-toggle" onclick="toggleSidebar()"></i>
                 <h2 id="pageTitle">Bookings (Leads)</h2>
             </div>
-            <div class="header-right">Hello, Admin</div>
+            <div class="header-right">Hello, Rupesh</div>
         </div>
 
         <div id="sec-bookings" class="content-section active">
@@ -161,7 +174,6 @@
         </div>
 
         <div id="sec-stages" class="content-section">
-            
             <div class="data-card" style="margin-bottom: 40px; background: #fafbfc; border: 1px dashed var(--primary-color);">
                 <h3 style="margin-bottom: 20px;"><i class="fa-solid fa-plus-circle"></i> Add New Stage Design</h3>
                 <form id="stageUploadForm">
@@ -197,7 +209,7 @@
         </div>
 
         <div id="sec-reviews" class="content-section">
-            <div class="loader" id="loader-reviews"><i class="fa-solid fa-spinner fa-spin"></i> Fetching reviews...</div>
+            <div class="loader" id="loader-reviews"><i class="fa-solid fa-spinner fa-spin"></i> Fetching client reviews...</div>
             <div class="grid-container" id="reviewsGrid"></div>
         </div>
 
@@ -217,9 +229,14 @@
                     </div>
                     <div id="previewContainer" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;"></div>
                     <button type="submit" class="btn-primary" id="btnUpload"><i class="fa-solid fa-upload"></i> Upload to Gallery</button>
-                    <div class="loader" id="loader-upload"><i class="fa-solid fa-spinner fa-spin"></i> Uploading...</div>
+                    <div class="loader" id="loader-upload" style="padding: 10px;"><i class="fa-solid fa-spinner fa-spin"></i> Uploading...</div>
                 </form>
             </div>
+        </div>
+
+        <div id="sec-gallery" class="content-section">
+            <div class="loader" id="loader-gallery"><i class="fa-solid fa-spinner fa-spin"></i> Loading live gallery...</div>
+            <div class="grid-container" id="galleryGrid"></div>
         </div>
 
     </div>
@@ -233,10 +250,8 @@
             <input type="hidden" id="editStageId">
             <label style="font-weight: 500; font-size: 0.9rem;">Heading</label>
             <input type="text" id="editHeading" class="form-control" required>
-            
             <label style="font-weight: 500; font-size: 0.9rem;">Price</label>
             <input type="text" id="editPrice" class="form-control" required>
-            
             <label style="font-weight: 500; font-size: 0.9rem;">Description</label>
             <textarea id="editText" class="form-control" rows="3" required></textarea>
             
@@ -258,7 +273,8 @@
             'bookings': 'Bookings (Leads)',
             'stages': 'Manage Stages',
             'reviews': 'Manage Reviews',
-            'upload': 'Upload to Gallery'
+            'upload': 'Upload to Gallery',
+            'gallery': 'Live Gallery'
         };
 
         function switchSection(secId, btnElement) {
@@ -277,13 +293,12 @@
             if(secId === 'bookings') fetchBookings();
             if(secId === 'stages') fetchStages();
             if(secId === 'reviews') fetchReviews();
+            if(secId === 'gallery') fetchGallery();
         }
 
         // ==========================================
-        //         ✨ MANAGE STAGES LOGIC (NEW)
+        //         1. STAGE LOGIC 
         // ==========================================
-        
-        // Image Preview before upload
         document.getElementById('stageImage').addEventListener('change', function(e) {
             const preview = document.getElementById('stagePreview');
             preview.innerHTML = '';
@@ -293,12 +308,10 @@
             }
         });
 
-        // Upload New Stage
         document.getElementById('stageUploadForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn = document.getElementById('btnUploadStage');
             const loader = document.getElementById('loader-stage-upload');
-            
             btn.style.display = 'none'; loader.style.display = 'block';
 
             const formData = new FormData();
@@ -314,13 +327,12 @@
                     alert("✅ Stage Uploaded!");
                     this.reset();
                     document.getElementById('stagePreview').innerHTML = '';
-                    fetchStages(); // Refresh grid
+                    fetchStages(); 
                 } else alert("❌ Error: " + data.message);
             } catch(e) { alert("Upload failed"); }
             finally { btn.style.display = 'block'; loader.style.display = 'none'; }
         });
 
-        // Fetch & Display Stages
         async function fetchStages() {
             const grid = document.getElementById('stagesGrid');
             const loader = document.getElementById('loader-stages');
@@ -341,7 +353,7 @@
                                 <p style="font-size: 0.9rem; color: #666; margin-bottom: 15px;" id="text-${s._id}">${s.text}</p>
                                 
                                 <div class="card-actions">
-                                    <button class="action-btn btn-edit" onclick="openEditModal('${s._id}', '${s.heading.replace(/'/g, "\\'")}', '${s.price.replace(/'/g, "\\'")}', '${s.text.replace(/'/g, "\\'")}')"><i class="fa-solid fa-pen"></i> Edit Details</button>
+                                    <button class="action-btn btn-edit" onclick="openEditModal('${s._id}', '${s.heading.replace(/'/g, "\\'")}', '${s.price.replace(/'/g, "\\'")}', '${s.text.replace(/'/g, "\\'")}')"><i class="fa-solid fa-pen"></i> Edit</button>
                                     <button class="action-btn btn-del" onclick="deleteStage('${s._id}')"><i class="fa-solid fa-trash"></i> Delete</button>
                                 </div>
                             </div>
@@ -353,7 +365,6 @@
             } catch (err) { loader.innerHTML = '<span style="color:red; text-align:center;">Error fetching stages.</span>'; }
         }
 
-        // Delete Stage
         async function deleteStage(id) {
             if(!confirm("Permanently delete this Stage Design from the website?")) return;
             try {
@@ -362,7 +373,6 @@
             } catch(e) { alert("Delete failed"); }
         }
 
-        // Edit Stage Modal Logic
         function openEditModal(id, heading, price, text) {
             document.getElementById('editStageId').value = id;
             document.getElementById('editHeading').value = heading;
@@ -371,9 +381,7 @@
             document.getElementById('editModal').classList.add('active');
         }
 
-        function closeEditModal() {
-            document.getElementById('editModal').classList.remove('active');
-        }
+        function closeEditModal() { document.getElementById('editModal').classList.remove('active'); }
 
         async function saveStageEdit() {
             const id = document.getElementById('editStageId').value;
@@ -394,7 +402,6 @@
                 const data = await res.json();
                 
                 if(data.success) {
-                    // Update UI directly without reloading
                     document.getElementById(`head-${id}`).innerText = newHeading;
                     document.getElementById(`text-${id}`).innerText = newText;
                     document.querySelector(`#stage-${id} .stage-price-tag`).innerText = newPrice;
@@ -405,8 +412,200 @@
         }
 
         // ==========================================
-        //  (Bookings, Reviews, Upload logic remain same as previous)
+        //         2. BOOKINGS LOGIC
         // ==========================================
+        async function fetchBookings() {
+            const grid = document.getElementById('bookingsGrid');
+            const loader = document.getElementById('loader-bookings');
+            grid.innerHTML = ''; loader.style.display = 'block';
+
+            try {
+                const res = await fetch(`${SERVER_URL}/api/bookings`);
+                const data = await res.json();
+                loader.style.display = 'none';
+
+                if(data.success && data.data.length > 0) {
+                    data.data.forEach(b => {
+                        let statusClass = b.status === 'Confirmed' ? 'confirmed' : 'pending';
+                        let refImageHtml = b.referenceImage 
+                            ? `<div style="margin-top:10px;"><a href="${b.referenceImage}" target="_blank" style="color:var(--primary-color); font-size:0.85rem;"><i class="fa-solid fa-image"></i> View Reference Image</a></div>` 
+                            : '';
+
+                        grid.innerHTML += `
+                            <div class="data-card" id="booking-${b._id}">
+                                <h3>${b.name} <span class="badge ${statusClass}">${b.status || 'Pending'}</span></h3>
+                                <div class="detail-row"><strong>Event:</strong> <span>${b.type}</span></div>
+                                <div class="detail-row"><strong>Date:</strong> <span>${b.date}</span></div>
+                                <div class="detail-row"><strong>Phone:</strong> <span><a href="tel:${b.phone}" style="text-decoration:none; color:inherit;">${b.phone}</a></span></div>
+                                <div class="detail-row"><strong>WhatsApp:</strong> <span><a href="https://wa.me/91${b.whatsapp}" target="_blank" style="color:#25d366; text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> Chat</a></span></div>
+                                <div class="detail-row"><strong>Guests:</strong> <span>${b.guests}</span></div>
+                                <div class="detail-row"><strong>Budget:</strong> <span>${b.budget}</span></div>
+                                <div class="detail-row"><strong>Extras:</strong> <span>Catering(${b.catering}), Photo(${b.photography})</span></div>
+                                <div class="detail-row" style="margin-top:10px; font-style:italic;">"${b.message || 'No extra message'}"</div>
+                                ${refImageHtml}
+                                
+                                <div class="card-actions">
+                                    <button class="action-btn btn-ok" onclick="updateBookingStatus('${b._id}', 'Confirmed')" title="Mark Confirmed"><i class="fa-solid fa-check"></i></button>
+                                    <button class="action-btn btn-del" onclick="deleteBooking('${b._id}')" title="Delete Lead"><i class="fa-solid fa-trash"></i> Delete</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    grid.innerHTML = '<p style="text-align:center; width:100%; color:#777;">No bookings found.</p>';
+                }
+            } catch (err) { loader.innerHTML = '<span style="color:red; text-align:center; width:100%;">Error connecting to server.</span>'; }
+        }
+
+        async function deleteBooking(id) {
+            if(!confirm("Permanently delete this booking lead?")) return;
+            try {
+                await fetch(`${SERVER_URL}/api/bookings/${id}`, { method: 'DELETE' });
+                document.getElementById(`booking-${id}`).remove();
+            } catch(e) { alert("Delete failed"); }
+        }
+
+        async function updateBookingStatus(id, status) {
+            try {
+                await fetch(`${SERVER_URL}/api/bookings/${id}`, {
+                    method: 'PUT', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({status: status})
+                });
+                fetchBookings(); 
+            } catch(e) { alert("Status update failed"); }
+        }
+
+        // ==========================================
+        //         3. REVIEWS LOGIC
+        // ==========================================
+        function getStars(rating) {
+            let html = '';
+            for(let i=1; i<=5; i++) { html += i<=rating ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-regular fa-star" style="color:#ddd"></i>'; }
+            return html;
+        }
+
+        async function fetchReviews() {
+            const grid = document.getElementById('reviewsGrid');
+            const loader = document.getElementById('loader-reviews');
+            grid.innerHTML = ''; loader.style.display = 'block';
+
+            try {
+                const res = await fetch(`${SERVER_URL}/api/reviews`);
+                const data = await res.json();
+                loader.style.display = 'none';
+
+                if(data.success && data.data.length > 0) {
+                    data.data.forEach(rev => {
+                        let mediaHtml = '';
+                        if(rev.media && rev.media.length > 0) {
+                            mediaHtml = '<div class="review-media">';
+                            rev.media.forEach(m => {
+                                if(m.type === 'video') mediaHtml += `<video src="${m.url}" controls></video>`;
+                                else mediaHtml += `<a href="${m.url}" target="_blank"><img src="${m.url}"></a>`;
+                            });
+                            mediaHtml += '</div>';
+                        }
+
+                        grid.innerHTML += `
+                            <div class="data-card" id="review-${rev._id}">
+                                <h3>${rev.name} <span style="font-size:0.8rem; color:#888; font-weight:normal;">${rev.event}</span></h3>
+                                <div class="review-stars">${getStars(rev.rating)}</div>
+                                <div class="review-text">"${rev.comment}"</div>
+                                ${mediaHtml}
+                                <div class="card-actions">
+                                    <button class="action-btn btn-del" onclick="deleteReview('${rev._id}')"><i class="fa-solid fa-trash"></i> Delete Review</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    grid.innerHTML = '<p style="text-align:center; width:100%; color:#777;">No reviews found.</p>';
+                }
+            } catch (err) { loader.innerHTML = '<span style="color:red; text-align:center; width:100%;">Error connecting to server.</span>'; }
+        }
+
+        async function deleteReview(id) {
+            if(!confirm("Delete this review permanently?")) return;
+            try {
+                await fetch(`${SERVER_URL}/api/reviews/${id}`, { method: 'DELETE' });
+                document.getElementById(`review-${id}`).remove();
+            } catch(e) { alert("Delete failed"); }
+        }
+
+        // ==========================================
+        //         4. UPLOAD & LIVE GALLERY
+        // ==========================================
+        document.getElementById('mediaFiles').addEventListener('change', function(e) {
+            const preview = document.getElementById('previewContainer');
+            preview.innerHTML = '';
+            Array.from(e.target.files).forEach(file => {
+                const url = URL.createObjectURL(file);
+                if(file.type.startsWith('video/')) preview.innerHTML += `<video src="${url}" style="width:60px; height:60px; object-fit:cover; border-radius:5px;"></video>`;
+                else preview.innerHTML += `<img src="${url}" style="width:60px; height:60px; object-fit:cover; border-radius:5px;">`;
+            });
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnUpload');
+            const loader = document.getElementById('loader-upload');
+            const files = document.getElementById('mediaFiles').files;
+            
+            btn.style.display = 'none'; loader.style.display = 'block';
+            
+            const formData = new FormData();
+            formData.append('category', document.getElementById('uploadCategory').value);
+            Array.from(files).forEach(f => formData.append('mediaFiles', f));
+
+            try {
+                const res = await fetch(`${SERVER_URL}/upload`, { method: 'POST', body: formData });
+                const data = await res.json();
+                if(data.success) {
+                    alert("✅ Uploaded to Live Gallery successfully!");
+                    this.reset();
+                    document.getElementById('previewContainer').innerHTML = '';
+                    fetchGallery();
+                } else alert("❌ Error: " + data.message);
+            } catch(e) { alert("Upload failed"); }
+            finally { btn.style.display = 'block'; loader.style.display = 'none'; }
+        });
+
+        async function fetchGallery() {
+            const grid = document.getElementById('galleryGrid');
+            const loader = document.getElementById('loader-gallery');
+            grid.innerHTML = ''; loader.style.display = 'block';
+
+            try {
+                const res = await fetch(`${SERVER_URL}/media`);
+                const data = await res.json();
+                loader.style.display = 'none';
+
+                if(data.items && data.items.length > 0) {
+                    data.items.forEach(item => {
+                        const isVideo = item.url.match(/\.(mp4|mov|webm)$/i);
+                        const mediaTag = isVideo ? `<video src="${item.url}" controls></video>` : `<img src="${item.url}">`;
+                        
+                        grid.innerHTML += `
+                            <div class="gallery-item" id="gal-${item._id}">
+                                ${mediaTag}
+                                <button class="gallery-delete" onclick="deleteGalleryItem('${item._id}')"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        `;
+                    });
+                } else {
+                    grid.innerHTML = '<p style="text-align:center; width:100%; color:#777;">Gallery is empty.</p>';
+                }
+            } catch (err) { loader.innerHTML = '<span style="color:red; text-align:center; width:100%;">Error connecting to server.</span>'; }
+        }
+
+        async function deleteGalleryItem(id) {
+            if(!confirm("Delete this from live gallery?")) return;
+            try {
+                await fetch(`${SERVER_URL}/delete/${id}`, { method: 'DELETE' });
+                document.getElementById(`gal-${id}`).remove();
+            } catch(e) { alert("Delete failed"); }
+        }
+
         // Initialize first tab
         window.onload = () => fetchBookings();
     </script>
