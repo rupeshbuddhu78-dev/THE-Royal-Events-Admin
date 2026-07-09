@@ -28,7 +28,7 @@ const Media = mongoose.model('Media', new mongoose.Schema({
     filename: String 
 }));
 
-// B. Booking Model (Updated with Reference Image)
+// B. Booking Model
 const Booking = mongoose.model('Booking', new mongoose.Schema({
     name: String,
     phone: String,
@@ -61,6 +61,16 @@ const Review = mongoose.model('Review', new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }));
 
+// D. Stage Model (🔥 NAYA ADD KIYA HAI)
+const Stage = mongoose.model('Stage', new mongoose.Schema({
+    heading: String,
+    text: String,
+    price: String,
+    imageUrl: String,    // Cloudinary URL
+    imageId: String,     // Cloudinary Public ID (Delete karne ke kaam aayega)
+    createdAt: { type: Date, default: Date.now }
+}));
+
 // --- 2. CLOUDINARY CONFIG ---
 cloudinary.config({ 
   cloud_name: 'dksk72xzh',
@@ -82,7 +92,6 @@ app.post('/upload', upload.array('mediaFiles', 10), async (req, res) => {
         for (const file of req.files) {
             const fileBase64 = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
             
-            // 🔥 NAYA: Folder name "Royal_Gallery" add kiya
             const result = await cloudinary.uploader.unsigned_upload(fileBase64, "royal_preset", { 
                 resource_type: "auto",
                 folder: "Royal_Gallery" 
@@ -126,6 +135,77 @@ app.delete('/delete/:id', async (req, res) => {
 
 
 // ==========================================
+//          ✨ STAGE DECOR APIs (NEW)
+// ==========================================
+
+app.post('/api/stages', upload.single('stageImage'), async (req, res) => {
+    try {
+        console.log("✨ New Stage Upload Request!");
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: "Please upload a stage image." });
+        }
+
+        // 1. Upload to Cloudinary in 'Royal_Stages' folder
+        const fileBase64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+        const result = await cloudinary.uploader.unsigned_upload(fileBase64, "royal_preset", { 
+            resource_type: "auto",
+            folder: "Royal_Stages"
+        });
+
+        // 2. Save Data to MongoDB
+        const newStage = new Stage({
+            heading: req.body.heading,
+            text: req.body.text,
+            price: req.body.price,
+            imageUrl: result.secure_url,
+            imageId: result.public_id
+        });
+
+        await newStage.save();
+        console.log("✅ New Stage Saved Successfully:", req.body.heading);
+        
+        res.status(201).json({ success: true, message: "Stage Added Successfully!", data: newStage });
+    } catch (err) {
+        console.log("❌ Stage Upload Error:", err.message);
+        res.status(500).json({ success: false, message: "Server Error: " + err.message });
+    }
+});
+
+app.get('/api/stages', async (req, res) => {
+    try {
+        const stages = await Stage.find().sort({ createdAt: -1 }); // Naya stage sabse upar dikhega
+        res.json({ success: true, data: stages });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Failed to fetch stages" });
+    }
+});
+
+app.delete('/api/stages/:id', async (req, res) => {
+    try {
+        const stage = await Stage.findById(req.params.id);
+        if (stage) {
+            // Delete image from Cloudinary first
+            try {
+                if (stage.imageId) {
+                    await cloudinary.uploader.destroy(stage.imageId, {
+                        api_key: '528438734126249',
+                        api_secret: 'DnmnEIWQD4eE1AmOlBHd3IAqA3Y'
+                    });
+                }
+            } catch (cloudErr) {
+                console.log(`⚠️ Cloudinary image delete failed:`, cloudErr);
+            }
+            // Delete from Database
+            await Stage.findByIdAndDelete(req.params.id);
+        }
+        res.json({ success: true, message: "Stage Deleted Successfully!" });
+    } catch (err) {
+        res.status(500).json({ success: false, message: "Error deleting stage" });
+    }
+});
+
+
+// ==========================================
 //          📝 BOOKING APIs
 // ==========================================
 
@@ -137,7 +217,6 @@ app.post('/api/bookings', upload.single('referenceImage'), async (req, res) => {
             console.log("📸 Booking ke sath ek suggestion photo aayi hai!");
             const fileBase64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
             
-            // 🔥 NAYA: Folder name "Royal_Bookings" add kiya
             const result = await cloudinary.uploader.unsigned_upload(fileBase64, "royal_preset", { 
                 resource_type: "auto",
                 folder: "Royal_Bookings"
@@ -215,7 +294,6 @@ app.post('/api/reviews', upload.array('reviewMedia', 10), async (req, res) => {
             for (const file of req.files) {
                 const fileBase64 = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
                 
-                // 🔥 NAYA: Folder name "Royal_Reviews" add kiya
                 const result = await cloudinary.uploader.unsigned_upload(fileBase64, "royal_preset", { 
                     resource_type: "auto",
                     folder: "Royal_Reviews"
